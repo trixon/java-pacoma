@@ -15,15 +15,32 @@
  */
 package se.trixon.pacoma;
 
+import se.trixon.almond.util.AlmondUI;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class Pacoma {
 
+    private final AlmondUI mAlmondUI = AlmondUI.getInstance();
+    private MainFrame mMainFrame = null;
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        new Pacoma(args);
+
+    }
+
+    public Pacoma(String[] args) {
+        mAlmondUI.installDarcula();
+        mAlmondUI.initLookAndFeel();
+
+        java.awt.EventQueue.invokeLater(() -> {
+            mMainFrame = new MainFrame();
+            mMainFrame.setVisible(true);
+        });
     }
 }
