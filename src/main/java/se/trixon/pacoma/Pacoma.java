@@ -15,6 +15,7 @@
  */
 package se.trixon.pacoma;
 
+import se.trixon.pacoma.ui.MainFrame;
 import se.trixon.almond.util.AlmondUI;
 
 /**
@@ -41,6 +42,7 @@ public class Pacoma {
         java.awt.EventQueue.invokeLater(() -> {
             mMainFrame = new MainFrame();
             mMainFrame.setVisible(true);
+
         });
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Patrik Karlsson.
+ * Copyright 2016 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.pacoma;
-
-import javax.swing.JFrame;
-import se.trixon.almond.util.AlmondOptions;
-import se.trixon.almond.util.AlmondUI;
+package se.trixon.pacoma.ui;
 
 /**
  *
  * @author Patrik Karlsson
  */
-public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher {
-
-    private final AlmondUI mAlmondUI = AlmondUI.getInstance();
+public class OptionsPanel extends javax.swing.JPanel {
 
     /**
-     * Creates new form MainFrame
+     * Creates new form OptionsPanel
      */
-    public MainFrame() {
+    public OptionsPanel() {
         initComponents();
-        init();
     }
 
-    @Override
-    public void onAlmondOptions(AlmondOptions.AlmondOptionsEvent almondOptionsEvent) {
-    }
-
-    private void init() {
-        mAlmondUI.addOptionsWatcher(this);
-        mAlmondUI.addWindowWatcher(this);
-        mAlmondUI.initoptions();
+    void save() {
+        lookAndFeelPanel.save();
     }
 
     /**
@@ -54,24 +41,21 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/pacoma/Bundle"); // NOI18N
-        setTitle(bundle.getString("MainFrame.title")); // NOI18N
+        lookAndFeelPanel = new se.trixon.almond.util.swing.dialogs.LookAndFeelPanel();
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(lookAndFeelPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addComponent(lookAndFeelPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
-
-        pack();
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private se.trixon.almond.util.swing.dialogs.LookAndFeelPanel lookAndFeelPanel;
     // End of variables declaration//GEN-END:variables
 }
