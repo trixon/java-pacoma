@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
 package se.trixon.pacoma.collage;
 
 import java.awt.Color;
+import java.io.File;
 
 /**
  *
@@ -23,10 +24,16 @@ import java.awt.Color;
  */
 public class Collage {
 
-    private int mWidth;
-    private int mHeight;
-    private Color mColor;
     private double mBorderThickness;
+    private Color mColor;
+    private File mFile;
+    private int mHeight = 2480;
+    private String mName;
+    private int mWidth = 3508;
+
+    public static Collage open(File file) {
+        return null;
+    }
 
     public Collage() {
     }
@@ -39,12 +46,24 @@ public class Collage {
         return mColor;
     }
 
+    public File getFile() {
+        return mFile;
+    }
+
     public int getHeight() {
         return mHeight;
     }
 
+    public String getName() {
+        return mName;
+    }
+
     public int getWidth() {
         return mWidth;
+    }
+
+    public void save(File file) {
+
     }
 
     public void setBorderThickness(double borderThickness) {
@@ -55,12 +74,19 @@ public class Collage {
         mColor = color;
     }
 
+    public void setFile(File file) {
+        mFile = file;
+    }
+
     public void setHeight(int height) {
         mHeight = height;
+    }
+
+    public void setName(String name) {
+        mName = name;
     }
 
     public void setWidth(int width) {
         mWidth = width;
     }
-
 }

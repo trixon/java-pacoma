@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,98 +15,80 @@
  */
 package se.trixon.pacoma.ui;
 
-import java.awt.Component;
+import com.apple.eawt.AppEvent;
+import com.apple.eawt.Application;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 import javax.swing.AbstractAction;
-import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SystemUtils;
-import se.trixon.almond.util.AlmondAction;
 import se.trixon.almond.util.AlmondOptions;
+import se.trixon.almond.util.AlmondOptionsPanel;
 import se.trixon.almond.util.AlmondUI;
-import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.almond.util.swing.SwingHelper;
-import se.trixon.almond.util.swing.dialogs.Message;
+import se.trixon.almond.util.swing.dialogs.MenuModePanel;
 import se.trixon.almond.util.swing.dialogs.SimpleDialog;
+import se.trixon.almond.util.swing.dialogs.about.AboutModel;
+import se.trixon.almond.util.swing.dialogs.about.AboutPanel;
 import se.trixon.pacoma.Pacoma;
+import se.trixon.pacoma.collage.Collage;
 
 /**
  *
  * @author Patrik Karlsson
  */
-public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher {
+public class MainFrame extends JFrame {
+
+    private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
 
     private ActionManager mActionManager;
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
-    private final ResourceBundle mBundle = BundleHelper.getBundle(Pacoma.class, "Bundle");
-    private final ResourceBundle mBundleUI = BundleHelper.getBundle(MainFrame.class, "Bundle");
-    private final LinkedList<AlmondAction> mBaseActions = new LinkedList<>();
-    private final LinkedList<AlmondAction> mAllActions = new LinkedList<>();
+    private final ResourceBundle mBundle = SystemHelper.getBundle(Pacoma.class, "Bundle");
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
     private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
-    private static int sDocumentCounter = 1;
+    private static int sDocumentCounter = 0;
+    private Collage mCollage = null;
 
     /**
      * Creates new form MainFrame
      */
     public MainFrame() {
         initComponents();
+
+        mAlmondUI.addWindowWatcher(this);
+        mAlmondUI.initoptions();
+
+        initActions();
         init();
-        setTile();
-    }
 
-    @Override
-    public void onAlmondOptions(AlmondOptions.AlmondOptionsEvent almondOptionsEvent) {
-        switch (almondOptionsEvent) {
-            case ICON_THEME:
-                mAllActions.stream().forEach((almondAction) -> {
-                    almondAction.updateIcon();
-                });
-                break;
-
-            case LOOK_AND_FEEL:
-                SwingUtilities.updateComponentTreeUI(this);
-                SwingUtilities.updateComponentTreeUI(mPopupMenu);
-                break;
-
-            case MENU_ICONS:
-                ActionMap actionMap = getRootPane().getActionMap();
-                for (Object key : actionMap.allKeys()) {
-                    Action action = actionMap.get(key);
-                    Icon icon = null;
-                    if (mAlmondOptions.isDisplayMenuIcons()) {
-                        icon = (Icon) action.getValue(AlmondAction.ALMOND_SMALL_ICON_KEY);
-                    }
-                    action.putValue(Action.SMALL_ICON, icon);
-                }
-                break;
-
-            default:
-                throw new AssertionError();
+        if (IS_MAC) {
+            initMac();
         }
+
+        initMenus();
     }
 
-    public void setTile() {
-        setTitle(String.format("%s %d — pacoma", Dict.UNTITLED.toString(), sDocumentCounter));
+    public void setTile(Collage collage) {
+        setTitle(String.format("%s — pacoma", collage.getName()));
     }
 
     private void addImages() {
@@ -123,21 +105,56 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         }
     }
 
+    private void editCollage(Collage collage) {
+        String title = "Edit properties";
+        boolean existing = true;
+        if (collage == null) {
+            collage = new Collage();
+            title = "Create a new collage";
+            existing = false;
+        }
+
+        PropertiesPanel propertiesPanel = new PropertiesPanel(collage);
+        SwingHelper.makeWindowResizable(propertiesPanel);
+
+        int result = JOptionPane.showOptionDialog(this,
+                propertiesPanel,
+                title,
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                null,
+                null);
+
+        if (result == JOptionPane.YES_OPTION) {
+            propertiesPanel.store();
+            mCollage = collage;
+
+            if (!existing) {
+                enableActions(true);
+                mCollage.setName(String.format("%s %d", Dict.UNTITLED.toString(), ++sDocumentCounter));
+                setTile(mCollage);
+            }
+        }
+    }
+
+    private void enableActions(boolean forceEnable) {
+//        for (AlmondAction action : mAllActions) {
+//            action.setEnabled(forceEnable || mBaseActions.contains(action));
+//        }
+
+    }
+
     private void init() {
         String fileName = String.format("/%s/pacoma-icon.png", getClass().getPackage().getName().replace(".", "/"));
         ImageIcon imageIcon = new ImageIcon(getClass().getResource(fileName));
         setIconImage(imageIcon.getImage());
 
-        mAlmondUI.addOptionsWatcher(this);
-        mAlmondUI.addWindowWatcher(this);
-        mAlmondUI.initoptions();
+        initListeners();
+    }
 
-        mActionManager = new ActionManager();
-        mActionManager.initActions();
-
-        mAlmondUI.addOptionsWatcher(this);
-        mAlmondUI.addWindowWatcher(this);
-        mAlmondUI.initoptions();
+    private void initActions() {
+        mActionManager = ActionManager.getInstance().init(getRootPane().getActionMap(), getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW));
 
         InputMap inputMap = mPopupMenu.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = mPopupMenu.getActionMap();
@@ -154,25 +171,205 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
         inputMap.put(keyStroke, key);
 
-//        loadProfiles();
-//        populateProfiles(null);
-//        initListeners();
+        //about
+        PomInfo pomInfo = new PomInfo(Pacoma.class, "se.trixon", "pacoma");
+        AboutModel aboutModel = new AboutModel(SystemHelper.getBundle(Pacoma.class, "about"), SystemHelper.getResourceAsImageIcon(MainFrame.class, "pacoma-icon.png"));
+        aboutModel.setAppVersion(pomInfo.getVersion());
+        AboutPanel aboutPanel = new AboutPanel(aboutModel);
+        action = AboutPanel.getAction(MainFrame.this, aboutPanel);
+        getRootPane().getActionMap().put(ActionManager.ABOUT, action);
+
+        optionsMenuItem.setAction(mActionManager.getAction(ActionManager.OPTIONS));
+//        cloneMenuItem.setAction(mActionManager.getAction(ActionManager.CLONE));
+//        removeMenuItem.setAction(mActionManager.getAction(ActionManager.REMOVE));
+//        removeAllMenuItem.setAction(mActionManager.getAction(ActionManager.REMOVE_ALL));
+        aboutMenuItem.setAction(mActionManager.getAction(ActionManager.ABOUT));
+        helpMenuItem.setAction(mActionManager.getAction(ActionManager.HELP));
+        quitMenuItem.setAction(mActionManager.getAction(ActionManager.QUIT));
+//        renameMenuItem.setAction(mActionManager.getAction(ActionManager.RENAME));
+
+        addButton.setAction(mActionManager.getAction(ActionManager.ADD));
+//        startButton.setAction(mActionManager.getAction(ActionManager.START));
+//        cancelButton.setAction(mActionManager.getAction(ActionManager.CANCEL));
+
+        newButton.setAction(mActionManager.getAction(ActionManager.NEW));
+        newMenuItem.setAction(mActionManager.getAction(ActionManager.NEW));
+
+        openButton.setAction(mActionManager.getAction(ActionManager.OPEN));
+        openMenuItem.setAction(mActionManager.getAction(ActionManager.OPEN));
+
+        saveButton.setAction(mActionManager.getAction(ActionManager.SAVE));
+        saveAsMenuItem.setAction(mActionManager.getAction(ActionManager.SAVE_AS));
+
+        propertiesButton.setAction(mActionManager.getAction(ActionManager.PROPERTIES));
+
+        closeButton.setAction(mActionManager.getAction(ActionManager.CLOSE));
+        addButton.setAction(mActionManager.getAction(ActionManager.ADD));
+//        addMenuItem.setAction(mActionManager.getAction(ActionManager.ADD));
+
+        menuButton.setAction(mActionManager.getAction(ActionManager.MENU));
+
+        SwingHelper.clearText(toolBar);
+
+    }
+
+    private void initListeners() {
+        mActionManager.addAppListener(new ActionManager.AppListener() {
+            @Override
+            public void onCancel(ActionEvent actionEvent) {
+            }
+
+            @Override
+            public void onMenu(ActionEvent actionEvent) {
+                if (actionEvent.getSource() != menuButton) {
+                    menuButtonMousePressed(null);
+                }
+            }
+
+            @Override
+            public void onOptions(ActionEvent actionEvent) {
+                showOptions();
+            }
+
+            @Override
+            public void onQuit(ActionEvent actionEvent) {
+                quit();
+            }
+
+            @Override
+            public void onStart(ActionEvent actionEvent) {
+            }
+        });
+
+        mActionManager.addProfileListener(new ActionManager.ProfileListener() {
+            @Override
+            public void onAdd(ActionEvent actionEvent) {
+                addImages();
+            }
+
+            @Override
+            public void onClose(ActionEvent actionEvent) {
+                setTitle("pacoma");
+                enableActions(false);
+            }
+
+            @Override
+            public void onEdit(ActionEvent actionEvent) {
+                editCollage(mCollage);
+            }
+
+            @Override
+            public void onNew(ActionEvent actionEvent) {
+                editCollage(null);
+            }
+
+            @Override
+            public void onOpen(ActionEvent actionEvent) {
+            }
+
+            @Override
+            public void onSave(ActionEvent actionEvent) {
+                saveCollage(mCollage);
+            }
+
+            @Override
+            public void onSaveAs(ActionEvent actionEvent) {
+                saveCollage(mCollage);
+            }
+        });
+    }
+
+    private void initMac() {
+        Application macApplication = Application.getApplication();
+        macApplication.setAboutHandler((AppEvent.AboutEvent ae) -> {
+            mActionManager.getAction(ActionManager.ABOUT).actionPerformed(null);
+        });
+
+        macApplication.setPreferencesHandler((AppEvent.PreferencesEvent pe) -> {
+            mActionManager.getAction(ActionManager.OPTIONS).actionPerformed(null);
+        });
+    }
+
+    private void initMenus() {
+        if (mAlmondOptions.getMenuMode() == MenuModePanel.MenuMode.BUTTON) {
+//            mPopupMenu.add(removeMenuItem);
+//            mPopupMenu.add(renameMenuItem);
+//            mPopupMenu.add(cloneMenuItem);
+//            mPopupMenu.add(removeAllMenuItem);
+            mPopupMenu.add(new JSeparator());
+
+            if (!IS_MAC) {
+                mPopupMenu.add(optionsMenuItem);
+                mPopupMenu.add(new JSeparator());
+            }
+
+//            mPopupMenu.add(helpMenuItem);
+//            mPopupMenu.add(aboutDateFormatMenuItem);
+            if (!IS_MAC) {
+                mPopupMenu.add(aboutMenuItem);
+            }
+
+            if (!IS_MAC) {
+                mPopupMenu.add(new JSeparator());
+                mPopupMenu.add(quitMenuItem);
+            }
+
+        } else {
+            setJMenuBar(menuBar);
+            if (IS_MAC) {
+                fileMenu.remove(quitMenuItem);
+                toolsMenu.remove(optionsMenuItem);
+                helpMenu.remove(aboutMenuItem);
+            }
+
+            fileMenu.setVisible(fileMenu.getComponents().length > 0 || !IS_MAC);
+            toolsMenu.setVisible(toolsMenu.getComponents().length > 0 || !IS_MAC);
+        }
+
+        menuButton.setVisible(mAlmondOptions.getMenuMode() == MenuModePanel.MenuMode.BUTTON);
+        SwingHelper.clearToolTipText(menuBar);
+        SwingHelper.clearToolTipText(mPopupMenu);
+    }
+
+    private void saveCollage(Collage collage) {
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Pacoma Collage (*.collage)", "collage");
+
+        SimpleDialog.clearFilters();
+        SimpleDialog.addFilter(filter);
+        SimpleDialog.setFilter(filter);
+        SimpleDialog.setParent(this);
+
+        File destination = collage.getFile();
+        if (destination == null) {
+            SimpleDialog.setPath(FileUtils.getUserDirectory());
+        } else {
+            SimpleDialog.setPath(destination.getParentFile());
+            SimpleDialog.setSelectedFile(new File(""));
+        }
+
+        if (SimpleDialog.saveFile(new String[]{"collage"})) {
+            destination = SimpleDialog.getPath();
+            collage.save(destination);
+            collage.setName(FilenameUtils.getBaseName(destination.getAbsolutePath()));
+            setTile(collage);
+        }
     }
 
     private void showOptions() {
         OptionsPanel optionsPanel = new OptionsPanel();
         SwingHelper.makeWindowResizable(optionsPanel);
 
+        Object[] options = new Object[]{AlmondOptionsPanel.getGlobalOptionsButton(optionsPanel), new JSeparator(), Dict.CANCEL, Dict.OK};
         int retval = JOptionPane.showOptionDialog(this,
                 optionsPanel,
                 Dict.OPTIONS.toString(),
-                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.DEFAULT_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
                 null,
-                null,
-                null);
+                options,
+                Dict.OK);
 
-        if (retval == JOptionPane.OK_OPTION) {
+        if (retval == Arrays.asList(options).indexOf(Dict.OK)) {
             optionsPanel.save();
         }
     }
@@ -190,13 +387,26 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private void initComponents() {
 
         mPopupMenu = new javax.swing.JPopupMenu();
-        saveAsMenuItem = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
-        optionsMenuItem = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
-        aboutMenuItem = new javax.swing.JMenuItem();
         jSeparator6 = new javax.swing.JPopupMenu.Separator();
+        menuBar = new javax.swing.JMenuBar();
+        fileMenu = new javax.swing.JMenu();
+        openMenuItem = new javax.swing.JMenuItem();
+        newMenuItem = new javax.swing.JMenuItem();
+        saveAsMenuItem = new javax.swing.JMenuItem();
         quitMenuItem = new javax.swing.JMenuItem();
+        profileMenu = new javax.swing.JMenu();
+        addMenuItem = new javax.swing.JMenuItem();
+        removeMenuItem = new javax.swing.JMenuItem();
+        renameMenuItem = new javax.swing.JMenuItem();
+        cloneMenuItem = new javax.swing.JMenuItem();
+        removeAllMenuItem = new javax.swing.JMenuItem();
+        toolsMenu = new javax.swing.JMenu();
+        optionsMenuItem = new javax.swing.JMenuItem();
+        helpMenu = new javax.swing.JMenu();
+        helpMenuItem = new javax.swing.JMenuItem();
+        aboutMenuItem = new javax.swing.JMenuItem();
         toolBar = new javax.swing.JToolBar();
         openButton = new javax.swing.JButton();
         newButton = new javax.swing.JButton();
@@ -212,16 +422,44 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         menuButton = new javax.swing.JButton();
         canvasPanel2 = new se.trixon.pacoma.ui.CanvasPanel();
 
-        mPopupMenu.add(saveAsMenuItem);
         mPopupMenu.add(jSeparator1);
-        mPopupMenu.add(optionsMenuItem);
         mPopupMenu.add(jSeparator2);
-        mPopupMenu.add(aboutMenuItem);
         mPopupMenu.add(jSeparator6);
-        mPopupMenu.add(quitMenuItem);
+
+        fileMenu.setText(Dict.FILE_MENU.toString());
+
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/pacoma/ui/Bundle"); // NOI18N
+        openMenuItem.setText(bundle.getString("MainFrame.openMenuItem.text")); // NOI18N
+        fileMenu.add(openMenuItem);
+
+        newMenuItem.setText(bundle.getString("MainFrame.newMenuItem.text")); // NOI18N
+        fileMenu.add(newMenuItem);
+        fileMenu.add(saveAsMenuItem);
+        fileMenu.add(quitMenuItem);
+
+        menuBar.add(fileMenu);
+
+        profileMenu.setText(Dict.PROFILE.toString());
+        profileMenu.add(addMenuItem);
+        profileMenu.add(removeMenuItem);
+        profileMenu.add(renameMenuItem);
+        profileMenu.add(cloneMenuItem);
+        profileMenu.add(removeAllMenuItem);
+
+        menuBar.add(profileMenu);
+
+        toolsMenu.setText(Dict.TOOLS.toString());
+        toolsMenu.add(optionsMenuItem);
+
+        menuBar.add(toolsMenu);
+
+        helpMenu.setText(Dict.HELP.toString());
+        helpMenu.add(helpMenuItem);
+        helpMenu.add(aboutMenuItem);
+
+        menuBar.add(helpMenu);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/pacoma/ui/Bundle"); // NOI18N
         setTitle(bundle.getString("MainFrame.title")); // NOI18N
 
         toolBar.setFloatable(false);
@@ -286,9 +524,14 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
+    private javax.swing.JMenuItem addMenuItem;
     private se.trixon.pacoma.ui.CanvasPanel canvasPanel2;
+    private javax.swing.JMenuItem cloneMenuItem;
     private javax.swing.JButton closeButton;
+    private javax.swing.JMenu fileMenu;
     private javax.swing.Box.Filler filler1;
+    private javax.swing.JMenu helpMenu;
+    private javax.swing.JMenuItem helpMenuItem;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
@@ -296,222 +539,23 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JPopupMenu.Separator jSeparator6;
     private javax.swing.JPopupMenu mPopupMenu;
+    private javax.swing.JMenuBar menuBar;
     private javax.swing.JButton menuButton;
     private javax.swing.JButton newButton;
+    private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JButton openButton;
+    private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem optionsMenuItem;
+    private javax.swing.JMenu profileMenu;
     private javax.swing.JButton propertiesButton;
     private javax.swing.JMenuItem quitMenuItem;
+    private javax.swing.JMenuItem removeAllMenuItem;
+    private javax.swing.JMenuItem removeMenuItem;
+    private javax.swing.JMenuItem renameMenuItem;
     private javax.swing.JButton saveAsButton;
     private javax.swing.JMenuItem saveAsMenuItem;
     private javax.swing.JButton saveButton;
     private javax.swing.JToolBar toolBar;
+    private javax.swing.JMenu toolsMenu;
     // End of variables declaration//GEN-END:variables
-    class ActionManager {
-
-        static final String ABOUT = "about";
-        static final String ADD = "add";
-        static final String PROPERTIES = "properties";
-        static final String NEW = "new";
-        static final String OPEN = "open";
-        static final String SAVE = "save";
-        static final String SAVE_AS = "save_as";
-        static final String CLOSE = "close";
-        static final String MENU = "menu";
-        static final String OPTIONS = "options";
-        static final String QUIT = "quit";
-        static final String REMOVE = "remove";
-        static final String REMOVE_ALL = "remove_all";
-        static final String RENAME = "rename";
-        static final String START = "start";
-
-        private ActionManager() {
-            initActions();
-        }
-
-        Action getAction(String key) {
-            return getRootPane().getActionMap().get(key);
-        }
-
-        private void initAction(AlmondAction action, String key, KeyStroke keyStroke, Enum iconEnum, boolean baseAction) {
-            InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-            ActionMap actionMap = getRootPane().getActionMap();
-
-            action.putValue(Action.ACCELERATOR_KEY, keyStroke);
-            action.putValue(Action.SHORT_DESCRIPTION, action.getValue(Action.NAME));
-            action.putValue("hideActionText", true);
-            action.setIconEnum(iconEnum);
-            action.updateIcon();
-
-            inputMap.put(keyStroke, key);
-            actionMap.put(key, action);
-
-            if (baseAction) {
-                mBaseActions.add(action);
-            }
-
-            mAllActions.add(action);
-        }
-
-        private void initActions() {
-            AlmondAction action;
-            KeyStroke keyStroke;
-            int commandMask = SystemHelper.getCommandMask();
-
-            //menu
-            int menuKey = KeyEvent.VK_M;
-            keyStroke = KeyStroke.getKeyStroke(menuKey, commandMask);
-            action = new AlmondAction(Dict.MENU.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (e.getSource() != menuButton) {
-                        menuButtonMousePressed(null);
-                    }
-                }
-            };
-
-            initAction(action, MENU, keyStroke, MaterialIcon._Navigation.MENU, true);
-            menuButton.setAction(action);
-            menuButton.setText(null);
-
-            //new document
-            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_N, commandMask);
-            action = new AlmondAction(Dict.NEW.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                }
-            };
-
-            initAction(action, NEW, keyStroke, MaterialIcon._Content.CREATE, true);
-            newButton.setAction(action);
-
-            //open document
-            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_O, commandMask);
-            action = new AlmondAction(Dict.OPEN.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                }
-            };
-
-            initAction(action, OPEN, keyStroke, MaterialIcon._File.FOLDER_OPEN, true);
-            openButton.setAction(action);
-
-            //save document
-            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_S, commandMask);
-            action = new AlmondAction(Dict.SAVE.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                }
-            };
-
-            initAction(action, SAVE, keyStroke, MaterialIcon._Content.SAVE, true);
-            saveButton.setAction(action);
-
-            //save document as
-            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_S, commandMask + InputEvent.SHIFT_MASK);
-            action = new AlmondAction(Dict.SAVE_AS.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                }
-            };
-
-            initAction(action, SAVE_AS, keyStroke, MaterialIcon._Content.SAVE, true);
-            saveAsMenuItem.setAction(action);
-
-            //properties
-            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_D, commandMask);
-            action = new AlmondAction(Dict.PROPERTIES.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                }
-            };
-
-            initAction(action, SAVE, keyStroke, MaterialIcon._Action.DESCRIPTION, true);
-            propertiesButton.setAction(action);
-
-            //close
-            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_W, commandMask);
-            action = new AlmondAction(Dict.CLOSE.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                }
-            };
-
-            initAction(action, CLOSE, keyStroke, MaterialIcon._Navigation.CLOSE, true);
-            closeButton.setAction(action);
-
-            //add images
-            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_A, commandMask);
-            action = new AlmondAction(Dict.ADD.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    addImages();
-                }
-            };
-
-            initAction(action, ADD, keyStroke, MaterialIcon._Image.ADD_A_PHOTO, true);
-            addButton.setAction(action);
-
-            //options
-            int optionsKey = SystemUtils.IS_OS_MAC ? KeyEvent.VK_COMMA : KeyEvent.VK_P;
-            keyStroke = KeyStroke.getKeyStroke(optionsKey, commandMask);
-            action = new AlmondAction(Dict.OPTIONS.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    showOptions();
-                }
-            };
-
-            initAction(action, OPTIONS, keyStroke, MaterialIcon._Action.SETTINGS, true);
-            optionsMenuItem.setAction(action);
-
-            //about
-            keyStroke = null;
-            action = new AlmondAction(Dict.ABOUT.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    String versionInfo = String.format(mBundle.getString("version_info"), SystemHelper.getJarVersion(Pacoma.class));
-                    Message.information(MainFrame.this, Dict.ABOUT.toString(), versionInfo);
-                }
-            };
-
-            initAction(action, ABOUT, keyStroke, null, true);
-            aboutMenuItem.setAction(action);
-
-            //quit
-            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Q, commandMask);
-            action = new AlmondAction(Dict.QUIT.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    quit();
-                }
-            };
-
-            initAction(action, QUIT, keyStroke, MaterialIcon._Content.CLEAR, true);
-            quitMenuItem.setAction(action);
-
-            for (Component component : mPopupMenu.getComponents()) {
-                if (component instanceof AbstractButton) {
-                    ((AbstractButton) component).setToolTipText(null);
-                }
-            }
-
-            for (Component component : toolBar.getComponents()) {
-                if (component instanceof AbstractButton) {
-//                    ((AbstractButton) component).setText(null);
-                }
-            }
-        }
-    }
 }

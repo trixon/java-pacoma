@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +15,57 @@
  */
 package se.trixon.pacoma.ui;
 
+import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.ResourceBundle;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JSpinner;
+import org.apache.commons.lang3.StringUtils;
+import se.trixon.almond.util.SystemHelper;
+import se.trixon.almond.util.Dict;
+import se.trixon.pacoma.collage.Collage;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class PropertiesPanel extends javax.swing.JPanel {
 
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
+    private final Collage mCollage;
+    private final ArrayList<Dimension> mDimensions = new ArrayList<>();
+
     /**
      * Creates new form PropertiesPanel
      */
-    public PropertiesPanel() {
+    public PropertiesPanel(Collage collage) {
         initComponents();
+        mCollage = collage;
+        init();
+    }
+
+    public void store() {
+        mCollage.setWidth((int) widthSpinner.getValue());
+        mCollage.setHeight((int) heightSpinner.getValue());
+    }
+
+    private void init() {
+        mDimensions.add(new Dimension(0, 0));
+        mDimensions.add(new Dimension(800, 600));
+        mDimensions.add(new Dimension(1600, 1200));
+        mDimensions.add(new Dimension(3508, 2480));
+        mDimensions.add(new Dimension(2480, 3508));
+        mDimensions.add(new Dimension(4960, 3508));
+        mDimensions.add(new Dimension(3508, 4960));
+        mDimensions.add(new Dimension(3300, 2550));
+        mDimensions.add(new Dimension(2550, 3300));
+
+        templateComboBox.setModel(new DefaultComboBoxModel<>(StringUtils.splitPreserveAllTokens(mBundleUI.getString("image_template"), ";")));
+        widthSpinner.setEditor(new JSpinner.NumberEditor(widthSpinner, "#"));
+        heightSpinner.setEditor(new JSpinner.NumberEditor(heightSpinner, "#"));
+
+        widthSpinner.setValue(mCollage.getWidth());
+        heightSpinner.setValue(mCollage.getHeight());
     }
 
     /**
@@ -35,19 +75,117 @@ public class PropertiesPanel extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+        templateLabel = new javax.swing.JLabel();
+        templateComboBox = new javax.swing.JComboBox<>();
+        imageSizeLabel = new javax.swing.JLabel();
+        widthLabel = new javax.swing.JLabel();
+        heightLabel = new javax.swing.JLabel();
+        widthSpinner = new javax.swing.JSpinner();
+        heightSpinner = new javax.swing.JSpinner();
+        jPanel1 = new javax.swing.JPanel();
+
+        setLayout(new java.awt.GridBagLayout());
+
+        templateLabel.setText(Dict.TEMPLATE.toString());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        add(templateLabel, gridBagConstraints);
+
+        templateComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                templateComboBoxActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        add(templateComboBox, gridBagConstraints);
+
+        imageSizeLabel.setFont(imageSizeLabel.getFont().deriveFont(imageSizeLabel.getFont().getSize()+3f));
+        imageSizeLabel.setText(Dict.IMAGE_SIZE.toString());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 0, 0, 0);
+        add(imageSizeLabel, gridBagConstraints);
+
+        widthLabel.setText(Dict.WIDTH.toString());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 16, 0, 0);
+        add(widthLabel, gridBagConstraints);
+
+        heightLabel.setText(Dict.HEIGHT.toString());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 16, 0, 0);
+        add(heightLabel, gridBagConstraints);
+
+        widthSpinner.setModel(new javax.swing.SpinnerNumberModel(256, 256, null, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        add(widthSpinner, gridBagConstraints);
+
+        heightSpinner.setModel(new javax.swing.SpinnerNumberModel(256, 256, null, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        add(heightSpinner, gridBagConstraints);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
         );
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(jPanel1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void templateComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_templateComboBoxActionPerformed
+        Dimension d = mDimensions.get(templateComboBox.getSelectedIndex());
+        if (d.height > 0 && d.width > 0) {
+            widthSpinner.setValue(d.width);
+            heightSpinner.setValue(d.height);
+        }
+    }//GEN-LAST:event_templateComboBoxActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel heightLabel;
+    private javax.swing.JSpinner heightSpinner;
+    private javax.swing.JLabel imageSizeLabel;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JComboBox<String> templateComboBox;
+    private javax.swing.JLabel templateLabel;
+    private javax.swing.JLabel widthLabel;
+    private javax.swing.JSpinner widthSpinner;
     // End of variables declaration//GEN-END:variables
 }
