@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -179,38 +179,42 @@ public class MainFrame extends JFrame {
         action = AboutPanel.getAction(MainFrame.this, aboutPanel);
         getRootPane().getActionMap().put(ActionManager.ABOUT, action);
 
-        optionsMenuItem.setAction(mActionManager.getAction(ActionManager.OPTIONS));
-//        cloneMenuItem.setAction(mActionManager.getAction(ActionManager.CLONE));
-//        removeMenuItem.setAction(mActionManager.getAction(ActionManager.REMOVE));
-//        removeAllMenuItem.setAction(mActionManager.getAction(ActionManager.REMOVE_ALL));
-        aboutMenuItem.setAction(mActionManager.getAction(ActionManager.ABOUT));
-        helpMenuItem.setAction(mActionManager.getAction(ActionManager.HELP));
-        quitMenuItem.setAction(mActionManager.getAction(ActionManager.QUIT));
-//        renameMenuItem.setAction(mActionManager.getAction(ActionManager.RENAME));
-
-        addButton.setAction(mActionManager.getAction(ActionManager.ADD));
-//        startButton.setAction(mActionManager.getAction(ActionManager.START));
-//        cancelButton.setAction(mActionManager.getAction(ActionManager.CANCEL));
-
+        //File
         newButton.setAction(mActionManager.getAction(ActionManager.NEW));
         newMenuItem.setAction(mActionManager.getAction(ActionManager.NEW));
 
         openButton.setAction(mActionManager.getAction(ActionManager.OPEN));
         openMenuItem.setAction(mActionManager.getAction(ActionManager.OPEN));
 
+        closeButton.setAction(mActionManager.getAction(ActionManager.CLOSE));
+        closeMenuItem.setAction(mActionManager.getAction(ActionManager.CLOSE));
+
         saveButton.setAction(mActionManager.getAction(ActionManager.SAVE));
+        saveMenuItem.setAction(mActionManager.getAction(ActionManager.SAVE));
+
+        saveAsButton.setAction(mActionManager.getAction(ActionManager.SAVE_AS));
         saveAsMenuItem.setAction(mActionManager.getAction(ActionManager.SAVE_AS));
 
+        propertiesMenuItem.setAction(mActionManager.getAction(ActionManager.PROPERTIES));
         propertiesButton.setAction(mActionManager.getAction(ActionManager.PROPERTIES));
 
-        closeButton.setAction(mActionManager.getAction(ActionManager.CLOSE));
-        addButton.setAction(mActionManager.getAction(ActionManager.ADD));
-//        addMenuItem.setAction(mActionManager.getAction(ActionManager.ADD));
+        quitMenuItem.setAction(mActionManager.getAction(ActionManager.QUIT));
 
+        //Tools
+        optionsMenuItem.setAction(mActionManager.getAction(ActionManager.OPTIONS));
+
+        //Help
+        helpMenuItem.setAction(mActionManager.getAction(ActionManager.HELP));
+        aboutMenuItem.setAction(mActionManager.getAction(ActionManager.ABOUT));
+
+        //Toolbar
+        addButton.setAction(mActionManager.getAction(ActionManager.ADD));
+
+//        startButton.setAction(mActionManager.getAction(ActionManager.START));
+//        cancelButton.setAction(mActionManager.getAction(ActionManager.CANCEL));
         menuButton.setAction(mActionManager.getAction(ActionManager.MENU));
 
-        SwingHelper.clearText(toolBar);
-
+        SwingHelper.clearTextButtons(menuButton);
     }
 
     private void initListeners() {
@@ -292,10 +296,14 @@ public class MainFrame extends JFrame {
 
     private void initMenus() {
         if (mAlmondOptions.getMenuMode() == MenuModePanel.MenuMode.BUTTON) {
-//            mPopupMenu.add(removeMenuItem);
-//            mPopupMenu.add(renameMenuItem);
-//            mPopupMenu.add(cloneMenuItem);
-//            mPopupMenu.add(removeAllMenuItem);
+            mPopupMenu.add(newMenuItem);
+            mPopupMenu.add(openMenuItem);
+            mPopupMenu.add(closeMenuItem);
+            mPopupMenu.add(new JSeparator());
+            mPopupMenu.add(saveMenuItem);
+            mPopupMenu.add(saveAsMenuItem);
+            mPopupMenu.add(new JSeparator());
+            mPopupMenu.add(propertiesMenuItem);
             mPopupMenu.add(new JSeparator());
 
             if (!IS_MAC) {
@@ -303,8 +311,7 @@ public class MainFrame extends JFrame {
                 mPopupMenu.add(new JSeparator());
             }
 
-//            mPopupMenu.add(helpMenuItem);
-//            mPopupMenu.add(aboutDateFormatMenuItem);
+            mPopupMenu.add(helpMenuItem);
             if (!IS_MAC) {
                 mPopupMenu.add(aboutMenuItem);
             }
@@ -387,29 +394,26 @@ public class MainFrame extends JFrame {
     private void initComponents() {
 
         mPopupMenu = new javax.swing.JPopupMenu();
-        jSeparator1 = new javax.swing.JPopupMenu.Separator();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
-        jSeparator6 = new javax.swing.JPopupMenu.Separator();
         menuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
-        openMenuItem = new javax.swing.JMenuItem();
         newMenuItem = new javax.swing.JMenuItem();
+        openMenuItem = new javax.swing.JMenuItem();
+        closeMenuItem = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        saveMenuItem = new javax.swing.JMenuItem();
         saveAsMenuItem = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        propertiesMenuItem = new javax.swing.JMenuItem();
+        jSeparator6 = new javax.swing.JPopupMenu.Separator();
         quitMenuItem = new javax.swing.JMenuItem();
-        profileMenu = new javax.swing.JMenu();
-        addMenuItem = new javax.swing.JMenuItem();
-        removeMenuItem = new javax.swing.JMenuItem();
-        renameMenuItem = new javax.swing.JMenuItem();
-        cloneMenuItem = new javax.swing.JMenuItem();
-        removeAllMenuItem = new javax.swing.JMenuItem();
         toolsMenu = new javax.swing.JMenu();
         optionsMenuItem = new javax.swing.JMenuItem();
         helpMenu = new javax.swing.JMenu();
         helpMenuItem = new javax.swing.JMenuItem();
         aboutMenuItem = new javax.swing.JMenuItem();
         toolBar = new javax.swing.JToolBar();
-        openButton = new javax.swing.JButton();
         newButton = new javax.swing.JButton();
+        openButton = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
         saveButton = new javax.swing.JButton();
         saveAsButton = new javax.swing.JButton();
@@ -422,31 +426,26 @@ public class MainFrame extends JFrame {
         menuButton = new javax.swing.JButton();
         canvasPanel2 = new se.trixon.pacoma.ui.CanvasPanel();
 
-        mPopupMenu.add(jSeparator1);
-        mPopupMenu.add(jSeparator2);
-        mPopupMenu.add(jSeparator6);
-
         fileMenu.setText(Dict.FILE_MENU.toString());
 
         java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/pacoma/ui/Bundle"); // NOI18N
+        newMenuItem.setText(bundle.getString("MainFrame.newMenuItem.text")); // NOI18N
+        fileMenu.add(newMenuItem);
+
         openMenuItem.setText(bundle.getString("MainFrame.openMenuItem.text")); // NOI18N
         fileMenu.add(openMenuItem);
 
-        newMenuItem.setText(bundle.getString("MainFrame.newMenuItem.text")); // NOI18N
-        fileMenu.add(newMenuItem);
+        closeMenuItem.setText(bundle.getString("MainFrame.closeMenuItem.text")); // NOI18N
+        fileMenu.add(closeMenuItem);
+        fileMenu.add(jSeparator2);
+        fileMenu.add(saveMenuItem);
         fileMenu.add(saveAsMenuItem);
+        fileMenu.add(jSeparator1);
+        fileMenu.add(propertiesMenuItem);
+        fileMenu.add(jSeparator6);
         fileMenu.add(quitMenuItem);
 
         menuBar.add(fileMenu);
-
-        profileMenu.setText(Dict.PROFILE.toString());
-        profileMenu.add(addMenuItem);
-        profileMenu.add(removeMenuItem);
-        profileMenu.add(renameMenuItem);
-        profileMenu.add(cloneMenuItem);
-        profileMenu.add(removeAllMenuItem);
-
-        menuBar.add(profileMenu);
 
         toolsMenu.setText(Dict.TOOLS.toString());
         toolsMenu.add(optionsMenuItem);
@@ -465,11 +464,11 @@ public class MainFrame extends JFrame {
         toolBar.setFloatable(false);
         toolBar.setRollover(true);
 
-        openButton.setFocusable(false);
-        toolBar.add(openButton);
-
         newButton.setFocusable(false);
         toolBar.add(newButton);
+
+        openButton.setFocusable(false);
+        toolBar.add(openButton);
         toolBar.add(jSeparator4);
 
         saveButton.setFocusable(false);
@@ -524,15 +523,14 @@ public class MainFrame extends JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
-    private javax.swing.JMenuItem addMenuItem;
     private se.trixon.pacoma.ui.CanvasPanel canvasPanel2;
-    private javax.swing.JMenuItem cloneMenuItem;
     private javax.swing.JButton closeButton;
+    private javax.swing.JMenuItem closeMenuItem;
     private javax.swing.JMenu fileMenu;
     private javax.swing.Box.Filler filler1;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JMenuItem helpMenuItem;
-    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
@@ -546,15 +544,13 @@ public class MainFrame extends JFrame {
     private javax.swing.JButton openButton;
     private javax.swing.JMenuItem openMenuItem;
     private javax.swing.JMenuItem optionsMenuItem;
-    private javax.swing.JMenu profileMenu;
     private javax.swing.JButton propertiesButton;
+    private javax.swing.JMenuItem propertiesMenuItem;
     private javax.swing.JMenuItem quitMenuItem;
-    private javax.swing.JMenuItem removeAllMenuItem;
-    private javax.swing.JMenuItem removeMenuItem;
-    private javax.swing.JMenuItem renameMenuItem;
     private javax.swing.JButton saveAsButton;
     private javax.swing.JMenuItem saveAsMenuItem;
     private javax.swing.JButton saveButton;
+    private javax.swing.JMenuItem saveMenuItem;
     private javax.swing.JToolBar toolBar;
     private javax.swing.JMenu toolsMenu;
     // End of variables declaration//GEN-END:variables
