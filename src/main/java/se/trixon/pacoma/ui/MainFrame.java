@@ -329,8 +329,8 @@ public class MainFrame extends JFrame {
                 helpMenu.remove(aboutMenuItem);
             }
 
-            fileMenu.setVisible(fileMenu.getComponents().length > 0 || !IS_MAC);
-            toolsMenu.setVisible(toolsMenu.getComponents().length > 0 || !IS_MAC);
+            fileMenu.setVisible(fileMenu.getMenuComponentCount() > 0 || !IS_MAC);
+            toolsMenu.setVisible(toolsMenu.getMenuComponentCount() > 0 || !IS_MAC);
         }
 
         menuButton.setVisible(mAlmondOptions.getMenuMode() == MenuModePanel.MenuMode.BUTTON);
@@ -427,15 +427,8 @@ public class MainFrame extends JFrame {
         canvasPanel2 = new se.trixon.pacoma.ui.CanvasPanel();
 
         fileMenu.setText(Dict.FILE_MENU.toString());
-
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/pacoma/ui/Bundle"); // NOI18N
-        newMenuItem.setText(bundle.getString("MainFrame.newMenuItem.text")); // NOI18N
         fileMenu.add(newMenuItem);
-
-        openMenuItem.setText(bundle.getString("MainFrame.openMenuItem.text")); // NOI18N
         fileMenu.add(openMenuItem);
-
-        closeMenuItem.setText(bundle.getString("MainFrame.closeMenuItem.text")); // NOI18N
         fileMenu.add(closeMenuItem);
         fileMenu.add(jSeparator2);
         fileMenu.add(saveMenuItem);
@@ -459,6 +452,7 @@ public class MainFrame extends JFrame {
         menuBar.add(helpMenu);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/pacoma/ui/Bundle"); // NOI18N
         setTitle(bundle.getString("MainFrame.title")); // NOI18N
 
         toolBar.setFloatable(false);
