@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,6 +80,8 @@ public class ActionManager extends AlmondActionManager {
             };
 
             initAction(action, MENU, keyStroke, MaterialIcon._Navigation.MENU, true);
+            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0);
+            mInputMap.put(keyStroke, MENU);
         }
 
         //options
@@ -357,6 +359,14 @@ public class ActionManager extends AlmondActionManager {
         initAction(action, ADD, keyStroke, MaterialIcon._Image.ADD_A_PHOTO, false);
 
         return this;
+    }
+
+    public void setEnabledDocumentActions(boolean open) {
+        String[] actionIds = new String[]{ADD, CLOSE, PROPERTIES, SAVE, SAVE_AS};
+
+        for (String actionId : actionIds) {
+            getAction(actionId).setEnabled(open);
+        }
     }
 
     public interface AppListener {

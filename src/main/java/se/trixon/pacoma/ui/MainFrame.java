@@ -85,6 +85,7 @@ public class MainFrame extends JFrame {
         }
 
         initMenus();
+        mActionManager.setEnabledDocumentActions(false);
     }
 
     public void setTile(Collage collage) {
@@ -131,18 +132,11 @@ public class MainFrame extends JFrame {
             mCollage = collage;
 
             if (!existing) {
-                enableActions(true);
+                mActionManager.setEnabledDocumentActions(true);
                 mCollage.setName(String.format("%s %d", Dict.UNTITLED.toString(), ++sDocumentCounter));
                 setTile(mCollage);
             }
         }
-    }
-
-    private void enableActions(boolean forceEnable) {
-//        for (AlmondAction action : mAllActions) {
-//            action.setEnabled(forceEnable || mBaseActions.contains(action));
-//        }
-
     }
 
     private void init() {
@@ -254,7 +248,7 @@ public class MainFrame extends JFrame {
             @Override
             public void onClose(ActionEvent actionEvent) {
                 setTitle("pacoma");
-                enableActions(false);
+                mActionManager.setEnabledDocumentActions(false);
             }
 
             @Override
@@ -269,6 +263,7 @@ public class MainFrame extends JFrame {
 
             @Override
             public void onOpen(ActionEvent actionEvent) {
+                mActionManager.setEnabledDocumentActions(true);
             }
 
             @Override

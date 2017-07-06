@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,8 @@
  */
 package se.trixon.pacoma;
 
-import se.trixon.pacoma.ui.MainFrame;
 import se.trixon.almond.util.AlmondUI;
+import se.trixon.pacoma.ui.MainFrame;
 
 /**
  *
@@ -42,7 +42,6 @@ public class Pacoma {
         java.awt.EventQueue.invokeLater(() -> {
             mMainFrame = new MainFrame();
             mMainFrame.setVisible(true);
-
         });
     }
 }
