@@ -19,6 +19,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
@@ -181,6 +183,7 @@ public class ActionManager extends AlmondActionManager {
                     try {
                         profileListener.onEdit(e);
                     } catch (Exception exception) {
+                        Logger.getLogger(ActionManager.class.getName()).log(Level.SEVERE, null, exception);
                     }
                 });
             }
@@ -249,6 +252,7 @@ public class ActionManager extends AlmondActionManager {
                     try {
                         profileListener.onNew(e);
                     } catch (Exception exception) {
+                        Logger.getLogger(ActionManager.class.getName()).log(Level.SEVERE, null, exception);
                     }
                 });
             }
@@ -317,6 +321,7 @@ public class ActionManager extends AlmondActionManager {
                     try {
                         profileListener.onEdit(e);
                     } catch (Exception exception) {
+                        Logger.getLogger(ActionManager.class.getName()).log(Level.SEVERE, null, exception);
                     }
                 });
             }

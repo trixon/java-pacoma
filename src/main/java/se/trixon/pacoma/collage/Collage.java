@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,15 @@
  */
 package se.trixon.pacoma.collage;
 
+import com.google.gson.Gson;
 import java.awt.Color;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Date;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  *
@@ -24,18 +31,40 @@ import java.io.File;
  */
 public class Collage {
 
+    private static final int FILE_FORMAT_VERSION = 1;
+    private static final Gson sGson = new Gson();
     private double mBorderThickness;
     private Color mColor;
-    private File mFile;
+    private Date mDate;
+    private transient boolean mDirty = false;
+    private transient File mFile;
+    private int mFileFormatVersion;
+    private final ArrayList<File> mFileList = new ArrayList<>();
     private int mHeight = 2480;
     private String mName;
+    private transient CollagePropertyChangeListener mPropertyChangeListener;
     private int mWidth = 3508;
 
-    public static Collage open(File file) {
-        return null;
+    public static Collage open(File file) throws IOException {
+        String json = FileUtils.readFileToString(file, Charset.defaultCharset());
+
+        Collage collage = sGson.fromJson(json, Collage.class);
+        collage.setFile(file);
+
+        if (collage.mFileFormatVersion != FILE_FORMAT_VERSION) {
+            //TODO Handle file format version change
+        }
+
+        return collage;
     }
 
     public Collage() {
+        mColor = Color.BLACK;
+    }
+
+    public void addFile(File file) {
+        mFileList.add(file);
+        setDirty(true);
     }
 
     public double getBorderThickness() {
@@ -50,6 +79,10 @@ public class Collage {
         return mFile;
     }
 
+    public ArrayList<File> getFileList() {
+        return mFileList;
+    }
+
     public int getHeight() {
         return mHeight;
     }
@@ -62,15 +95,31 @@ public class Collage {
         return mWidth;
     }
 
-    public void save(File file) {
+    public boolean isDirty() {
+        return mDirty;
+    }
 
+    public void removeFile(File file) {
+        mFileList.remove(file);
+        setDirty(true);
+    }
+
+    public void save(File file) throws IOException {
+        mFile = file;
+        setName(FilenameUtils.getBaseName(mFile.getAbsolutePath()));
+        mFileFormatVersion = FILE_FORMAT_VERSION;
+        mDate = new Date();
+        FileUtils.writeStringToFile(mFile, sGson.toJson(this), Charset.defaultCharset());
+        setDirty(false);
     }
 
     public void setBorderThickness(double borderThickness) {
+        setDirtyOr(mBorderThickness != borderThickness);
         mBorderThickness = borderThickness;
     }
 
     public void setColor(Color color) {
+        setDirtyOr(mColor != color);
         mColor = color;
     }
 
@@ -79,6 +128,7 @@ public class Collage {
     }
 
     public void setHeight(int height) {
+        setDirtyOr(mHeight != height);
         mHeight = height;
     }
 
@@ -86,7 +136,31 @@ public class Collage {
         mName = name;
     }
 
+    public void setPropertyChangeListener(CollagePropertyChangeListener propertyChangeListener) {
+        mPropertyChangeListener = propertyChangeListener;
+    }
+
     public void setWidth(int width) {
+        setDirtyOr(mWidth != width);
         mWidth = width;
+    }
+
+    private void setDirty(boolean dirty) {
+        mDirty = dirty;
+
+        mPropertyChangeListener.onPropertyChanged();
+    }
+
+    private void setDirtyOr(boolean dirty) {
+        mDirty = mDirty || dirty;
+
+        if (dirty) {
+            mPropertyChangeListener.onPropertyChanged();
+        }
+    }
+
+    public interface CollagePropertyChangeListener {
+
+        void onPropertyChanged();
     }
 }

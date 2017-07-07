@@ -22,8 +22,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -36,7 +39,6 @@ import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondOptions;
 import se.trixon.almond.util.AlmondOptionsPanel;
@@ -67,6 +69,9 @@ public class MainFrame extends JFrame {
     private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
     private static int sDocumentCounter = 0;
     private Collage mCollage = null;
+    private final FileNameExtensionFilter mCollageFileNameExtensionFilter = new FileNameExtensionFilter(mBundleUI.getString("filter_collage"), "collage");
+    private final FileNameExtensionFilter mImageFileNameExtensionFilter = new FileNameExtensionFilter(mBundleUI.getString("filter_image"), "jpg", "png");
+    private Collage.CollagePropertyChangeListener mCollagePropertyChangeListener;
 
     /**
      * Creates new form MainFrame
@@ -88,30 +93,23 @@ public class MainFrame extends JFrame {
         mActionManager.setEnabledDocumentActions(false);
     }
 
-    public void setTile(Collage collage) {
-        setTitle(String.format("%s — pacoma", collage.getName()));
-    }
-
     private void addImages() {
-        SimpleDialog.setParent(this);
-        SimpleDialog.clearFilters();
-        FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter("Image file (*.jpg, *.png)", "jpg", "png");
-        SimpleDialog.addFilter(fileNameExtensionFilter);
-        SimpleDialog.setFilter(fileNameExtensionFilter);
+        initFileDialog(mImageFileNameExtensionFilter);
 
         if (SimpleDialog.openFile(true)) {
             for (File file : SimpleDialog.getPaths()) {
-                System.out.println(file.getAbsolutePath());
+                mCollage.addFile(file);
             }
         }
     }
 
     private void editCollage(Collage collage) {
-        String title = "Edit properties";
+        String title = Dict.Dialog.TITLE_EDIT_PROPERTIES.toString();
         boolean existing = true;
         if (collage == null) {
             collage = new Collage();
-            title = "Create a new collage";
+            collage.setPropertyChangeListener(mCollagePropertyChangeListener);
+            title = mBundleUI.getString("create_new_collage");
             existing = false;
         }
 
@@ -134,7 +132,7 @@ public class MainFrame extends JFrame {
             if (!existing) {
                 mActionManager.setEnabledDocumentActions(true);
                 mCollage.setName(String.format("%s %d", Dict.UNTITLED.toString(), ++sDocumentCounter));
-                setTile(mCollage);
+//                mCollage.setPropertyChangeListener(mCollagePropertyChangeListener);
             }
         }
     }
@@ -211,6 +209,14 @@ public class MainFrame extends JFrame {
         SwingHelper.clearTextButtons(menuButton);
     }
 
+    private void initFileDialog(FileNameExtensionFilter filter) {
+        SimpleDialog.clearFilters();
+        SimpleDialog.clearSelection();
+        SimpleDialog.addFilter(filter);
+        SimpleDialog.setFilter(filter);
+        SimpleDialog.setParent(this);
+    }
+
     private void initListeners() {
         mActionManager.addAppListener(new ActionManager.AppListener() {
             @Override
@@ -259,23 +265,45 @@ public class MainFrame extends JFrame {
             @Override
             public void onNew(ActionEvent actionEvent) {
                 editCollage(null);
+                if (mCollage != null && mCollage.getName() != null) {
+                    setTitle(mCollage);
+                }
             }
 
             @Override
             public void onOpen(ActionEvent actionEvent) {
-                mActionManager.setEnabledDocumentActions(true);
+                initFileDialog(mCollageFileNameExtensionFilter);
+
+                if (SimpleDialog.openFile()) {
+                    try {
+                        mCollage = Collage.open(SimpleDialog.getPath());
+                        mActionManager.setEnabledDocumentActions(true);
+                        mActionManager.getAction(ActionManager.SAVE).setEnabled(false);
+                        mCollage.setPropertyChangeListener(mCollagePropertyChangeListener);
+                        setTitle(mCollage);
+                    } catch (IOException ex) {
+                        Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
             }
 
             @Override
             public void onSave(ActionEvent actionEvent) {
-                saveCollage(mCollage);
+                save();
             }
 
             @Override
             public void onSaveAs(ActionEvent actionEvent) {
-                saveCollage(mCollage);
+                saveAs();
             }
         });
+
+        mCollagePropertyChangeListener = () -> {
+            if (mCollage != null) {
+                setTitle(mCollage);
+                mActionManager.getAction(ActionManager.SAVE).setEnabled(true);
+            }
+        };
     }
 
     private void initMac() {
@@ -333,28 +361,48 @@ public class MainFrame extends JFrame {
         SwingHelper.clearToolTipText(mPopupMenu);
     }
 
-    private void saveCollage(Collage collage) {
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Pacoma Collage (*.collage)", "collage");
+    private void save() {
+        final File file = mCollage.getFile();
 
-        SimpleDialog.clearFilters();
-        SimpleDialog.addFilter(filter);
-        SimpleDialog.setFilter(filter);
-        SimpleDialog.setParent(this);
+        if (file != null) {
+            try {
+                mCollage.save(file);
+                mActionManager.getAction(ActionManager.SAVE).setEnabled(false);
+            } catch (IOException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            saveAs();
+        }
+    }
 
-        File destination = collage.getFile();
-        if (destination == null) {
+    private void saveAs() {
+        initFileDialog(mCollageFileNameExtensionFilter);
+        SimpleDialog.clearSelection();
+
+        File file = mCollage.getFile();
+        if (file == null) {
             SimpleDialog.setPath(FileUtils.getUserDirectory());
         } else {
-            SimpleDialog.setPath(destination.getParentFile());
-            SimpleDialog.setSelectedFile(new File(""));
+            SimpleDialog.setSelectedFile(file);
         }
 
         if (SimpleDialog.saveFile(new String[]{"collage"})) {
-            destination = SimpleDialog.getPath();
-            collage.save(destination);
-            collage.setName(FilenameUtils.getBaseName(destination.getAbsolutePath()));
-            setTile(collage);
+            file = SimpleDialog.getPath();
+            try {
+                mCollage.save(file);
+                mActionManager.getAction(ActionManager.SAVE).setEnabled(false);
+            } catch (IOException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
+    }
+
+    private void setTitle(Collage collage) {
+        setTitle(String.format("%s %s— pacoma",
+                collage.getName(),
+                collage.isDirty() ? "* " : ""
+        ));
     }
 
     private void showOptions() {
