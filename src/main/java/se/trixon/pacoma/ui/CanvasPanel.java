@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +15,39 @@
  */
 package se.trixon.pacoma.ui;
 
+import java.util.prefs.PreferenceChangeEvent;
+import se.trixon.pacoma.Options;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class CanvasPanel extends javax.swing.JPanel {
 
+    private final Options mOptions = Options.getInstance();
+
     /**
      * Creates new form CanvasPanel
      */
     public CanvasPanel() {
         initComponents();
+        init();
+    }
+
+    private void init() {
+        mOptions.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
+            if (evt.getKey() == Options.KEY_BACKGROUND_COLOR) {
+                setBackground(mOptions.getBackgroundColor());
+            } else if (evt.getKey() == Options.KEY_CUSTOM_BACKGROUND) {
+                setOpaque(mOptions.isCustomBackground());
+            }
+
+            repaint();
+            revalidate();
+        });
+
+        setBackground(mOptions.getBackgroundColor());
+        setOpaque(mOptions.isCustomBackground());
     }
 
     /**
@@ -39,6 +61,7 @@ public class CanvasPanel extends javax.swing.JPanel {
         pagePanel1 = new se.trixon.pacoma.ui.PagePanel();
 
         setBackground(new java.awt.Color(0, 102, 153));
+        setOpaque(false);
         setLayout(new java.awt.GridBagLayout());
 
         pagePanel1.setMaximumSize(new java.awt.Dimension(10, 10));

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,20 +15,34 @@
  */
 package se.trixon.pacoma.ui;
 
+import se.trixon.almond.util.Dict;
+import se.trixon.pacoma.Options;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class OptionsPanel extends javax.swing.JPanel {
 
+    private final Options mOptions = Options.getInstance();
+
     /**
      * Creates new form OptionsPanel
      */
     public OptionsPanel() {
         initComponents();
+        colorPanel.setDialogParent(this);
+        load();
+    }
+
+    private void load() {
+        customBackgroundCheckBox.setSelected(mOptions.isCustomBackground());
+        colorPanel.setColor(mOptions.getBackgroundColor());
     }
 
     void save() {
+        mOptions.setBackgroundColor(colorPanel.getColor());
+        mOptions.setCustomBackground(customBackgroundCheckBox.isSelected());
     }
 
     /**
@@ -38,19 +52,57 @@ public class OptionsPanel extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        bindingGroup = new org.jdesktop.beansbinding.BindingGroup();
+
+        colorHolderPanel = new javax.swing.JPanel();
+        customBackgroundCheckBox = new javax.swing.JCheckBox();
+        colorPanel = new se.trixon.almond.util.swing.ColorPanel();
+
+        colorHolderPanel.setLayout(new java.awt.GridLayout(1, 0, 8, 0));
+
+        customBackgroundCheckBox.setText(Dict.BACKGROUND_COLOR.toString());
+        colorHolderPanel.add(customBackgroundCheckBox);
+
+        org.jdesktop.beansbinding.Binding binding = org.jdesktop.beansbinding.Bindings.createAutoBinding(org.jdesktop.beansbinding.AutoBinding.UpdateStrategy.READ_WRITE, customBackgroundCheckBox, org.jdesktop.beansbinding.ELProperty.create("${selected}"), colorPanel, org.jdesktop.beansbinding.BeanProperty.create("enabled"));
+        bindingGroup.addBinding(binding);
+
+        javax.swing.GroupLayout colorPanelLayout = new javax.swing.GroupLayout(colorPanel);
+        colorPanel.setLayout(colorPanelLayout);
+        colorPanelLayout.setHorizontalGroup(
+            colorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 113, Short.MAX_VALUE)
+        );
+        colorPanelLayout.setVerticalGroup(
+            colorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
+        colorHolderPanel.add(colorPanel);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 413, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(colorHolderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(143, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 240, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(colorHolderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(203, Short.MAX_VALUE))
         );
+
+        bindingGroup.bind();
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel colorHolderPanel;
+    private se.trixon.almond.util.swing.ColorPanel colorPanel;
+    private javax.swing.JCheckBox customBackgroundCheckBox;
+    private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration//GEN-END:variables
 }

@@ -59,6 +59,11 @@
             <artifactId>gson</artifactId>
             <version>2.8.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.jdesktop</groupId>
+            <artifactId>beansbinding</artifactId>
+            <version>1.2.1</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -99,6 +104,12 @@
                                     <artifact>com.bulenkov:darcula</artifact>
                                     <includes>
                                         <include>com/bulenkov/**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.jdesktop:beansbinding</artifact>
+                                    <includes>
+                                        <include>*/**</include>
                                     </includes>
                                 </filter>
                             </filters>
