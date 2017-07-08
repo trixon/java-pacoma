@@ -15,7 +15,12 @@
  */
 package se.trixon.pacoma;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import se.trixon.almond.util.AlmondUI;
+import se.trixon.almond.util.Dict;
 import se.trixon.pacoma.ui.MainFrame;
 
 /**
@@ -42,6 +47,18 @@ public class Pacoma {
         java.awt.EventQueue.invokeLater(() -> {
             mMainFrame = new MainFrame();
             mMainFrame.setVisible(true);
+            if (args.length > 0) {
+                File file = new File(args[0]);
+                if (file.isFile()) {
+                    try {
+                        mMainFrame.open(file);
+                    } catch (IOException ex) {
+                        Logger.getLogger(Pacoma.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    System.err.println(String.format(Dict.Dialog.MESSAGE_FILE_NOT_FOUND.toString(), args[0]));
+                }
+            }
         });
     }
 }

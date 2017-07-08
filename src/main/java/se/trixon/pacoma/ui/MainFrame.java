@@ -17,6 +17,7 @@ package se.trixon.pacoma.ui;
 
 import com.apple.eawt.AppEvent;
 import com.apple.eawt.Application;
+import com.google.gson.JsonSyntaxException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -48,6 +49,7 @@ import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.swing.SwingHelper;
 import se.trixon.almond.util.swing.dialogs.MenuModePanel;
+import se.trixon.almond.util.swing.dialogs.Message;
 import se.trixon.almond.util.swing.dialogs.SimpleDialog;
 import se.trixon.almond.util.swing.dialogs.about.AboutModel;
 import se.trixon.almond.util.swing.dialogs.about.AboutPanel;
@@ -91,6 +93,20 @@ public class MainFrame extends JFrame {
 
         initMenus();
         mActionManager.setEnabledDocumentActions(false);
+    }
+
+    public void open(File file) throws IOException {
+        try {
+            mCollage = Collage.open(file);
+            mActionManager.setEnabledDocumentActions(true);
+            mActionManager.getAction(ActionManager.SAVE).setEnabled(false);
+            mCollage.setPropertyChangeListener(mCollagePropertyChangeListener);
+            setTitle(mCollage);
+        } catch (JsonSyntaxException e) {
+            Message.error(this, Dict.Dialog.TITLE_IO_ERROR.toString(),
+                    String.format("%s  %s\n%s", Dict.Dialog.ERROR_CANT_OPEN_FILE.toString(), file.getAbsolutePath(), e.getMessage())
+            );
+        }
     }
 
     private void addImages() {
@@ -276,11 +292,7 @@ public class MainFrame extends JFrame {
 
                 if (SimpleDialog.openFile()) {
                     try {
-                        mCollage = Collage.open(SimpleDialog.getPath());
-                        mActionManager.setEnabledDocumentActions(true);
-                        mActionManager.getAction(ActionManager.SAVE).setEnabled(false);
-                        mCollage.setPropertyChangeListener(mCollagePropertyChangeListener);
-                        setTitle(mCollage);
+                        open(SimpleDialog.getPath());
                     } catch (IOException ex) {
                         Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                     }

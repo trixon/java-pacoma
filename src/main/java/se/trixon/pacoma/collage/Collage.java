@@ -16,6 +16,7 @@
 package se.trixon.pacoma.collage;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +46,7 @@ public class Collage {
     private transient CollagePropertyChangeListener mPropertyChangeListener;
     private int mWidth = 3508;
 
-    public static Collage open(File file) throws IOException {
+    public static Collage open(File file) throws IOException, JsonSyntaxException {
         String json = FileUtils.readFileToString(file, Charset.defaultCharset());
 
         Collage collage = sGson.fromJson(json, Collage.class);
@@ -54,6 +55,8 @@ public class Collage {
         if (collage.mFileFormatVersion != FILE_FORMAT_VERSION) {
             //TODO Handle file format version change
         }
+
+        System.out.println(json);
 
         return collage;
     }
