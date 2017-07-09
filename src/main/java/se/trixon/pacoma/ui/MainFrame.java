@@ -100,8 +100,9 @@ public class MainFrame extends JFrame {
             mCollage = Collage.open(file);
             mActionManager.setEnabledDocumentActions(true);
             mActionManager.getAction(ActionManager.SAVE).setEnabled(false);
-            mCollage.setPropertyChangeListener(mCollagePropertyChangeListener);
+            mCollage.addPropertyChangeListener(mCollagePropertyChangeListener);
             setTitle(mCollage);
+            canvasPanel.open(mCollage);
         } catch (JsonSyntaxException e) {
             Message.error(this, Dict.Dialog.TITLE_IO_ERROR.toString(),
                     String.format("%s  %s\n%s", Dict.Dialog.ERROR_CANT_OPEN_FILE.toString(), file.getAbsolutePath(), e.getMessage())
@@ -124,7 +125,7 @@ public class MainFrame extends JFrame {
         boolean existing = true;
         if (collage == null) {
             collage = new Collage();
-            collage.setPropertyChangeListener(mCollagePropertyChangeListener);
+            collage.addPropertyChangeListener(mCollagePropertyChangeListener);
             title = mBundleUI.getString("create_new_collage");
             existing = false;
         }
@@ -148,7 +149,6 @@ public class MainFrame extends JFrame {
             if (!existing) {
                 mActionManager.setEnabledDocumentActions(true);
                 mCollage.setName(String.format("%s %d", Dict.UNTITLED.toString(), ++sDocumentCounter));
-//                mCollage.setPropertyChangeListener(mCollagePropertyChangeListener);
             }
         }
     }
@@ -271,6 +271,7 @@ public class MainFrame extends JFrame {
             public void onClose(ActionEvent actionEvent) {
                 setTitle("pacoma");
                 mActionManager.setEnabledDocumentActions(false);
+                canvasPanel.close();
             }
 
             @Override
@@ -283,6 +284,7 @@ public class MainFrame extends JFrame {
                 editCollage(null);
                 if (mCollage != null && mCollage.getName() != null) {
                     setTitle(mCollage);
+                    canvasPanel.open(mCollage);
                 }
             }
 
@@ -390,7 +392,6 @@ public class MainFrame extends JFrame {
 
     private void saveAs() {
         initFileDialog(mCollageFileNameExtensionFilter);
-        SimpleDialog.clearSelection();
 
         File file = mCollage.getFile();
         if (file == null) {
@@ -479,7 +480,7 @@ public class MainFrame extends JFrame {
         addButton = new javax.swing.JButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         menuButton = new javax.swing.JButton();
-        canvasPanel2 = new se.trixon.pacoma.ui.CanvasPanel();
+        canvasPanel = new se.trixon.pacoma.ui.CanvasPanel();
 
         fileMenu.setText(Dict.FILE_MENU.toString());
         fileMenu.add(newMenuItem);
@@ -549,7 +550,7 @@ public class MainFrame extends JFrame {
         toolBar.add(menuButton);
 
         getContentPane().add(toolBar, java.awt.BorderLayout.PAGE_START);
-        getContentPane().add(canvasPanel2, java.awt.BorderLayout.CENTER);
+        getContentPane().add(canvasPanel, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -572,14 +573,14 @@ public class MainFrame extends JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
-    private se.trixon.pacoma.ui.CanvasPanel canvasPanel2;
+    private se.trixon.pacoma.ui.CanvasPanel canvasPanel;
     private javax.swing.JButton closeButton;
     private javax.swing.JMenuItem closeMenuItem;
     private javax.swing.JMenu fileMenu;
     private javax.swing.Box.Filler filler1;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JMenuItem helpMenuItem;
-    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;

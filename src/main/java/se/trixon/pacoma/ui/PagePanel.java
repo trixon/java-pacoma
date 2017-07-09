@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,17 +15,37 @@
  */
 package se.trixon.pacoma.ui;
 
+import se.trixon.pacoma.collage.Collage;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class PagePanel extends javax.swing.JPanel {
 
+    private Collage mCollage;
+
     /**
      * Creates new form PagePanel
      */
     public PagePanel() {
         initComponents();
+        init();
+
+    }
+
+    private void init() {
+    }
+
+    void open(Collage collage) {
+        mCollage = collage;
+        setBackground(mCollage.getBorderColor());
+
+        mCollage.addPropertyChangeListener(() -> {
+            setBackground(mCollage.getBorderColor());
+            repaint();
+            revalidate();
+        });
     }
 
     /**
@@ -36,7 +56,7 @@ public class PagePanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setBackground(new java.awt.Color(0, 102, 204));
+        setMinimumSize(new java.awt.Dimension(100, 100));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -34,8 +35,8 @@ public class Collage {
 
     private static final int FILE_FORMAT_VERSION = 1;
     private static final Gson sGson = new Gson();
+    private Color mBorderColor;
     private double mBorderThickness;
-    private Color mColor;
     private Date mDate;
     private transient boolean mDirty = false;
     private transient File mFile;
@@ -43,7 +44,7 @@ public class Collage {
     private final ArrayList<File> mFileList = new ArrayList<>();
     private int mHeight = 2480;
     private String mName;
-    private transient CollagePropertyChangeListener mPropertyChangeListener;
+    private transient final HashSet<CollagePropertyChangeListener> mPropertyChangeListeners = new HashSet<>();
     private int mWidth = 3508;
 
     public static Collage open(File file) throws IOException, JsonSyntaxException {
@@ -62,7 +63,7 @@ public class Collage {
     }
 
     public Collage() {
-        mColor = Color.BLACK;
+        mBorderColor = Color.CYAN;
     }
 
     public void addFile(File file) {
@@ -70,12 +71,16 @@ public class Collage {
         setDirty(true);
     }
 
-    public double getBorderThickness() {
-        return mBorderThickness;
+    public void addPropertyChangeListener(CollagePropertyChangeListener propertyChangeListener) {
+        mPropertyChangeListeners.add(propertyChangeListener);
     }
 
-    public Color getColor() {
-        return mColor;
+    public Color getBorderColor() {
+        return mBorderColor;
+    }
+
+    public double getBorderThickness() {
+        return mBorderThickness;
     }
 
     public File getFile() {
@@ -107,6 +112,10 @@ public class Collage {
         setDirty(true);
     }
 
+    public void removePropertyChangeListener(CollagePropertyChangeListener propertyChangeListener) {
+        mPropertyChangeListeners.remove(propertyChangeListener);
+    }
+
     public void save(File file) throws IOException {
         mFile = file;
         setName(FilenameUtils.getBaseName(mFile.getAbsolutePath()));
@@ -116,14 +125,20 @@ public class Collage {
         setDirty(false);
     }
 
-    public void setBorderThickness(double borderThickness) {
-        setDirtyOr(mBorderThickness != borderThickness);
-        mBorderThickness = borderThickness;
+    public void setBorderColor(Color borderColor) {
+        Color oldValue = mBorderColor;
+        if (oldValue != borderColor) {
+            mBorderColor = borderColor;
+            setDirtyOr(oldValue != borderColor);
+        }
     }
 
-    public void setColor(Color color) {
-        setDirtyOr(mColor != color);
-        mColor = color;
+    public void setBorderThickness(double borderThickness) {
+        double oldValue = mBorderThickness;
+        if (oldValue != borderThickness) {
+            mBorderThickness = borderThickness;
+            setDirtyOr(oldValue != borderThickness);
+        }
     }
 
     public void setFile(File file) {
@@ -131,34 +146,45 @@ public class Collage {
     }
 
     public void setHeight(int height) {
-        setDirtyOr(mHeight != height);
-        mHeight = height;
+        int oldValue = mHeight;
+        if (oldValue != height) {
+            mHeight = height;
+            setDirtyOr(oldValue != height);
+        }
     }
 
     public void setName(String name) {
         mName = name;
     }
 
-    public void setPropertyChangeListener(CollagePropertyChangeListener propertyChangeListener) {
-        mPropertyChangeListener = propertyChangeListener;
+    public void setWidth(int width) {
+        int oldValue = mWidth;
+        if (oldValue != width) {
+            mWidth = width;
+            setDirtyOr(oldValue != width);
+        }
     }
 
-    public void setWidth(int width) {
-        setDirtyOr(mWidth != width);
-        mWidth = width;
+    private void notifyPropertyChangeListeners() {
+        mPropertyChangeListeners.forEach((propertyChangeListener) -> {
+            try {
+                propertyChangeListener.onPropertyChanged();
+            } catch (Exception e) {
+                //
+            }
+        });
     }
 
     private void setDirty(boolean dirty) {
         mDirty = dirty;
-
-        mPropertyChangeListener.onPropertyChanged();
+        notifyPropertyChangeListeners();
     }
 
     private void setDirtyOr(boolean dirty) {
         mDirty = mDirty || dirty;
 
         if (dirty) {
-            mPropertyChangeListener.onPropertyChanged();
+            notifyPropertyChangeListeners();
         }
     }
 

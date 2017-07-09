@@ -17,6 +17,7 @@ package se.trixon.pacoma.ui;
 
 import java.util.prefs.PreferenceChangeEvent;
 import se.trixon.pacoma.Options;
+import se.trixon.pacoma.collage.Collage;
 
 /**
  *
@@ -24,6 +25,7 @@ import se.trixon.pacoma.Options;
  */
 public class CanvasPanel extends javax.swing.JPanel {
 
+    private Collage mCollage;
     private final Options mOptions = Options.getInstance();
 
     /**
@@ -32,6 +34,16 @@ public class CanvasPanel extends javax.swing.JPanel {
     public CanvasPanel() {
         initComponents();
         init();
+    }
+
+    void close() {
+        pagePanel.setVisible(false);
+    }
+
+    void open(Collage collage) {
+        mCollage = collage;
+        pagePanel.open(collage);
+        pagePanel.setVisible(true);
     }
 
     private void init() {
@@ -48,6 +60,8 @@ public class CanvasPanel extends javax.swing.JPanel {
 
         setBackground(mOptions.getBackgroundColor());
         setOpaque(mOptions.isCustomBackground());
+
+        pagePanel.setVisible(false);
     }
 
     /**
@@ -58,18 +72,18 @@ public class CanvasPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        pagePanel1 = new se.trixon.pacoma.ui.PagePanel();
+        pagePanel = new se.trixon.pacoma.ui.PagePanel();
 
         setBackground(new java.awt.Color(0, 102, 153));
         setOpaque(false);
         setLayout(new java.awt.GridBagLayout());
 
-        pagePanel1.setMaximumSize(new java.awt.Dimension(10, 10));
-        pagePanel1.setPreferredSize(new java.awt.Dimension(10, 10));
-        add(pagePanel1, new java.awt.GridBagConstraints());
+        pagePanel.setMaximumSize(new java.awt.Dimension(10, 10));
+        pagePanel.setPreferredSize(new java.awt.Dimension(10, 10));
+        add(pagePanel, new java.awt.GridBagConstraints());
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private se.trixon.pacoma.ui.PagePanel pagePanel1;
+    private se.trixon.pacoma.ui.PagePanel pagePanel;
     // End of variables declaration//GEN-END:variables
 }

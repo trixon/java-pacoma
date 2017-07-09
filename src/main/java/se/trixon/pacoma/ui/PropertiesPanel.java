@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,8 @@ import java.util.ResourceBundle;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JSpinner;
 import org.apache.commons.lang3.StringUtils;
-import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.SystemHelper;
 import se.trixon.pacoma.collage.Collage;
 
 /**
@@ -47,6 +47,8 @@ public class PropertiesPanel extends javax.swing.JPanel {
     public void store() {
         mCollage.setWidth((int) widthSpinner.getValue());
         mCollage.setHeight((int) heightSpinner.getValue());
+        mCollage.setBorderThickness((double) thicknessSpinner.getValue());
+        mCollage.setBorderColor(colorPanel.getColor());
     }
 
     private void init() {
@@ -66,6 +68,9 @@ public class PropertiesPanel extends javax.swing.JPanel {
 
         widthSpinner.setValue(mCollage.getWidth());
         heightSpinner.setValue(mCollage.getHeight());
+
+        colorPanel.setColor(mCollage.getBorderColor());
+        thicknessSpinner.setValue(mCollage.getBorderThickness());
     }
 
     /**
@@ -84,6 +89,11 @@ public class PropertiesPanel extends javax.swing.JPanel {
         heightLabel = new javax.swing.JLabel();
         widthSpinner = new javax.swing.JSpinner();
         heightSpinner = new javax.swing.JSpinner();
+        borderLabel = new javax.swing.JLabel();
+        thicknessLabel = new javax.swing.JLabel();
+        colorLabel = new javax.swing.JLabel();
+        thicknessSpinner = new javax.swing.JSpinner();
+        colorPanel = new se.trixon.almond.util.swing.ColorPanel();
         jPanel1 = new javax.swing.JPanel();
 
         setLayout(new java.awt.GridBagLayout());
@@ -151,20 +161,70 @@ public class PropertiesPanel extends javax.swing.JPanel {
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
         add(heightSpinner, gridBagConstraints);
 
+        borderLabel.setFont(borderLabel.getFont().deriveFont(borderLabel.getFont().getSize()+3f));
+        borderLabel.setText(Dict.BORDER.toString());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(8, 0, 0, 0);
+        add(borderLabel, gridBagConstraints);
+
+        thicknessLabel.setText(Dict.THICKNESS.toString());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_END;
+        add(thicknessLabel, gridBagConstraints);
+
+        colorLabel.setText(Dict.COLOR.toString());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 0, 0, 0);
+        add(colorLabel, gridBagConstraints);
+
+        thicknessSpinner.setModel(new javax.swing.SpinnerNumberModel(1.0d, 0.0d, 100.0d, 1.0d));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        add(thicknessSpinner, gridBagConstraints);
+
+        javax.swing.GroupLayout colorPanelLayout = new javax.swing.GroupLayout(colorPanel);
+        colorPanel.setLayout(colorPanelLayout);
+        colorPanelLayout.setHorizontalGroup(
+            colorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        colorPanelLayout.setVerticalGroup(
+            colorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(8, 8, 0, 0);
+        add(colorPanel, gridBagConstraints);
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         add(jPanel1, gridBagConstraints);
@@ -179,12 +239,17 @@ public class PropertiesPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_templateComboBoxActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel borderLabel;
+    private javax.swing.JLabel colorLabel;
+    private se.trixon.almond.util.swing.ColorPanel colorPanel;
     private javax.swing.JLabel heightLabel;
     private javax.swing.JSpinner heightSpinner;
     private javax.swing.JLabel imageSizeLabel;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JComboBox<String> templateComboBox;
     private javax.swing.JLabel templateLabel;
+    private javax.swing.JLabel thicknessLabel;
+    private javax.swing.JSpinner thicknessSpinner;
     private javax.swing.JLabel widthLabel;
     private javax.swing.JSpinner widthSpinner;
     // End of variables declaration//GEN-END:variables

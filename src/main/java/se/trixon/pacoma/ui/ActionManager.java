@@ -270,6 +270,7 @@ public class ActionManager extends AlmondActionManager {
                     try {
                         profileListener.onOpen(e);
                     } catch (Exception exception) {
+                        Logger.getLogger(ActionManager.class.getName()).log(Level.SEVERE, null, exception);
                     }
                 });
             }
