@@ -546,7 +546,6 @@ public class MainFrame extends JFrame {
         toolBar.add(addButton);
 
         clearButton.setFocusable(false);
-        clearButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolBar.add(clearButton);
         toolBar.add(filler1);
 
