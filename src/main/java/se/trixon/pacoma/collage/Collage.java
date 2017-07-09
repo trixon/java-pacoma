@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -68,6 +69,11 @@ public class Collage {
 
     public void addFile(File file) {
         mFileList.add(file);
+        setDirty(true);
+    }
+
+    public void addFiles(List<File> files) {
+        mFileList.addAll(files);
         setDirty(true);
     }
 

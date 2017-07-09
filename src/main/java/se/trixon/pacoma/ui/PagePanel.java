@@ -16,6 +16,17 @@
 package se.trixon.pacoma.ui;
 
 import java.awt.Dimension;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import org.apache.commons.io.FilenameUtils;
 import se.trixon.almond.util.Scaler;
 import se.trixon.pacoma.collage.Collage;
 
@@ -26,6 +37,7 @@ import se.trixon.pacoma.collage.Collage;
 public class PagePanel extends javax.swing.JPanel {
 
     private Collage mCollage;
+    private DropTarget mDropTarget;
 
     /**
      * Creates new form PagePanel
@@ -49,6 +61,39 @@ public class PagePanel extends javax.swing.JPanel {
     }
 
     private void init() {
+        mDropTarget = new DropTarget() {
+            @Override
+            public synchronized void drop(DropTargetDropEvent evt) {
+                try {
+                    evt.acceptDrop(DnDConstants.ACTION_COPY);
+                    LinkedList<File> droppedFiles = new LinkedList<>((List<File>) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
+                    List<File> invalidFiles = new LinkedList<>();
+
+                    droppedFiles.forEach((droppedFile) -> {
+                        if (droppedFile.isFile() && FilenameUtils.isExtension(droppedFile.getName().toLowerCase(Locale.getDefault()), new String[]{"jpg", "jpeg", "png"})) {
+                            //all ok
+                        } else {
+                            invalidFiles.add(droppedFile);
+                        }
+                    });
+
+                    invalidFiles.forEach((invalidFile) -> {
+                        droppedFiles.remove(invalidFile);
+                        System.out.println("remomve invalid file: " + invalidFile.getAbsolutePath());
+                    });
+
+                    droppedFiles.forEach((droppedFile) -> {
+                        System.out.println("accept: " + droppedFile.getAbsolutePath());
+                    });
+
+                    mCollage.addFiles(droppedFiles);
+                } catch (UnsupportedFlavorException | IOException ex) {
+                    System.err.println(ex.getMessage());
+                }
+            }
+        };
+
+        setDropTarget(mDropTarget);
     }
 
     private void resize() {

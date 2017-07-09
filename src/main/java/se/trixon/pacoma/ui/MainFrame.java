@@ -115,9 +115,7 @@ public class MainFrame extends JFrame {
         initFileDialog(mImageFileNameExtensionFilter);
 
         if (SimpleDialog.openFile(true)) {
-            for (File file : SimpleDialog.getPaths()) {
-                mCollage.addFile(file);
-            }
+            mCollage.addFiles(Arrays.asList(SimpleDialog.getPaths()));
         }
     }
 
