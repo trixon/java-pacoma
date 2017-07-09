@@ -69,6 +69,11 @@
         </Menu>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JButton" name="saveAsButton">
+      <Properties>
+        <Property name="focusable" type="boolean" value="false"/>
+      </Properties>
+    </Component>
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
@@ -125,11 +130,6 @@
             <Property name="focusable" type="boolean" value="false"/>
           </Properties>
         </Component>
-        <Component class="javax.swing.JButton" name="saveAsButton">
-          <Properties>
-            <Property name="focusable" type="boolean" value="false"/>
-          </Properties>
-        </Component>
         <Component class="javax.swing.JToolBar$Separator" name="jSeparator5">
         </Component>
         <Component class="javax.swing.JButton" name="closeButton">
@@ -147,6 +147,12 @@
         <Component class="javax.swing.JButton" name="addButton">
           <Properties>
             <Property name="focusable" type="boolean" value="false"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JButton" name="clearButton">
+          <Properties>
+            <Property name="focusable" type="boolean" value="false"/>
+            <Property name="verticalTextPosition" type="int" value="3"/>
           </Properties>
         </Component>
         <Component class="javax.swing.Box$Filler" name="filler1">

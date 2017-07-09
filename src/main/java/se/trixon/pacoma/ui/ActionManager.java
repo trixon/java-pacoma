@@ -156,6 +156,23 @@ public class ActionManager extends AlmondActionManager {
 
         initAction(action, ADD, keyStroke, MaterialIcon._Content.ADD, true);
 
+        //clear
+        keyStroke = null;
+        action = new AlmondAction(Dict.CLEAR.toString()) {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mProfileListeners.forEach((profileListener) -> {
+                    try {
+                        profileListener.onClear(e);
+                    } catch (Exception exception) {
+                    }
+                });
+            }
+        };
+
+        initAction(action, CLEAR, keyStroke, MaterialIcon._Content.REMOVE, true);
+
         //clone
         keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_C, commandMask + InputEvent.SHIFT_DOWN_MASK);
         action = new AlmondAction(Dict.CLONE.toString()) {
@@ -368,7 +385,7 @@ public class ActionManager extends AlmondActionManager {
     }
 
     public void setEnabledDocumentActions(boolean open) {
-        String[] actionIds = new String[]{ADD, CLOSE, PROPERTIES, SAVE, SAVE_AS};
+        String[] actionIds = new String[]{ADD, CLEAR, CLOSE, PROPERTIES, SAVE, SAVE_AS};
 
         for (String actionId : actionIds) {
             getAction(actionId).setEnabled(open);
@@ -391,6 +408,8 @@ public class ActionManager extends AlmondActionManager {
     public interface ProfileListener {
 
         void onAdd(ActionEvent actionEvent);
+
+        void onClear(ActionEvent actionEvent);
 
         void onClose(ActionEvent actionEvent);
 

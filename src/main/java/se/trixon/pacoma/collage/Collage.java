@@ -75,6 +75,13 @@ public class Collage {
         mPropertyChangeListeners.add(propertyChangeListener);
     }
 
+    public void clearFiles() {
+        if (hasImages()) {
+            mFileList.clear();
+            setDirty(true);
+        }
+    }
+
     public Color getBorderColor() {
         return mBorderColor;
     }
@@ -101,6 +108,10 @@ public class Collage {
 
     public int getWidth() {
         return mWidth;
+    }
+
+    public boolean hasImages() {
+        return !mFileList.isEmpty();
     }
 
     public boolean isDirty() {

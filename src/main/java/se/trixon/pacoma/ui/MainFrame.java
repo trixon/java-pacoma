@@ -101,6 +101,7 @@ public class MainFrame extends JFrame {
             mActionManager.setEnabledDocumentActions(true);
             mActionManager.getAction(ActionManager.SAVE).setEnabled(false);
             mCollage.addPropertyChangeListener(mCollagePropertyChangeListener);
+            mActionManager.getAction(ActionManager.CLEAR).setEnabled(mCollage.hasImages());
             setTitle(mCollage);
             canvasPanel.open(mCollage);
         } catch (JsonSyntaxException e) {
@@ -217,6 +218,7 @@ public class MainFrame extends JFrame {
 
         //Toolbar
         addButton.setAction(mActionManager.getAction(ActionManager.ADD));
+        clearButton.setAction(mActionManager.getAction(ActionManager.CLEAR));
 
 //        startButton.setAction(mActionManager.getAction(ActionManager.START));
 //        cancelButton.setAction(mActionManager.getAction(ActionManager.CANCEL));
@@ -268,6 +270,11 @@ public class MainFrame extends JFrame {
             }
 
             @Override
+            public void onClear(ActionEvent actionEvent) {
+                mCollage.clearFiles();
+            }
+
+            @Override
             public void onClose(ActionEvent actionEvent) {
                 setTitle("pacoma");
                 mActionManager.setEnabledDocumentActions(false);
@@ -285,6 +292,7 @@ public class MainFrame extends JFrame {
                 if (mCollage != null && mCollage.getName() != null) {
                     setTitle(mCollage);
                     canvasPanel.open(mCollage);
+                    mActionManager.getAction(ActionManager.CLEAR).setEnabled(false);
                 }
             }
 
@@ -316,6 +324,7 @@ public class MainFrame extends JFrame {
             if (mCollage != null) {
                 setTitle(mCollage);
                 mActionManager.getAction(ActionManager.SAVE).setEnabled(true);
+                mActionManager.getAction(ActionManager.CLEAR).setEnabled(mCollage.hasImages());
             }
         };
     }
@@ -467,17 +476,18 @@ public class MainFrame extends JFrame {
         helpMenu = new javax.swing.JMenu();
         helpMenuItem = new javax.swing.JMenuItem();
         aboutMenuItem = new javax.swing.JMenuItem();
+        saveAsButton = new javax.swing.JButton();
         toolBar = new javax.swing.JToolBar();
         newButton = new javax.swing.JButton();
         openButton = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
         saveButton = new javax.swing.JButton();
-        saveAsButton = new javax.swing.JButton();
         jSeparator5 = new javax.swing.JToolBar.Separator();
         closeButton = new javax.swing.JButton();
         jSeparator3 = new javax.swing.JToolBar.Separator();
         propertiesButton = new javax.swing.JButton();
         addButton = new javax.swing.JButton();
+        clearButton = new javax.swing.JButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         menuButton = new javax.swing.JButton();
         canvasPanel = new se.trixon.pacoma.ui.CanvasPanel();
@@ -507,6 +517,8 @@ public class MainFrame extends JFrame {
 
         menuBar.add(helpMenu);
 
+        saveAsButton.setFocusable(false);
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/pacoma/ui/Bundle"); // NOI18N
         setTitle(bundle.getString("MainFrame.title")); // NOI18N
@@ -523,9 +535,6 @@ public class MainFrame extends JFrame {
 
         saveButton.setFocusable(false);
         toolBar.add(saveButton);
-
-        saveAsButton.setFocusable(false);
-        toolBar.add(saveAsButton);
         toolBar.add(jSeparator5);
 
         closeButton.setFocusable(false);
@@ -537,6 +546,10 @@ public class MainFrame extends JFrame {
 
         addButton.setFocusable(false);
         toolBar.add(addButton);
+
+        clearButton.setFocusable(false);
+        clearButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(clearButton);
         toolBar.add(filler1);
 
         menuButton.setFocusable(false);
@@ -574,6 +587,7 @@ public class MainFrame extends JFrame {
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
     private se.trixon.pacoma.ui.CanvasPanel canvasPanel;
+    private javax.swing.JButton clearButton;
     private javax.swing.JButton closeButton;
     private javax.swing.JMenuItem closeMenuItem;
     private javax.swing.JMenu fileMenu;
