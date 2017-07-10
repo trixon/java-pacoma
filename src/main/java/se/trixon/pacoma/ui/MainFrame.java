@@ -18,6 +18,11 @@ package se.trixon.pacoma.ui;
 import com.apple.eawt.AppEvent;
 import com.apple.eawt.Application;
 import com.google.gson.JsonSyntaxException;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -25,6 +30,9 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,6 +48,7 @@ import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondOptions;
 import se.trixon.almond.util.AlmondOptionsPanel;
@@ -71,7 +80,8 @@ public class MainFrame extends JFrame {
     private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
     private static int sDocumentCounter = 0;
     private Collage mCollage = null;
-    private final FileNameExtensionFilter mCollageFileNameExtensionFilter = new FileNameExtensionFilter(mBundleUI.getString("filter_collage"), "collage");
+    private final FileNameExtensionFilter mCollageFileNameExtensionFilter = new FileNameExtensionFilter(mBundleUI.getString("filter_collage"), Collage.FILE_EXT);
+    private DropTarget mDropTarget;
     private final FileNameExtensionFilter mImageFileNameExtensionFilter = new FileNameExtensionFilter(mBundleUI.getString("filter_image"), "jpg", "png");
     private Collage.CollagePropertyChangeListener mCollagePropertyChangeListener;
 
@@ -325,6 +335,45 @@ public class MainFrame extends JFrame {
                 mActionManager.getAction(ActionManager.CLEAR).setEnabled(mCollage.hasImages());
             }
         };
+
+        mDropTarget = new DropTarget() {
+            @Override
+            public synchronized void drop(DropTargetDropEvent evt) {
+                try {
+                    evt.acceptDrop(DnDConstants.ACTION_COPY);
+                    LinkedList<File> droppedFiles = new LinkedList<>((List<File>) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
+                    List<File> invalidFiles = new LinkedList<>();
+
+                    droppedFiles.forEach((droppedFile) -> {
+                        if (droppedFile.isFile() && FilenameUtils.isExtension(droppedFile.getName().toLowerCase(Locale.getDefault()), Collage.FILE_EXT)) {
+                            //all ok
+                        } else {
+                            invalidFiles.add(droppedFile);
+                        }
+                    });
+
+                    invalidFiles.forEach((invalidFile) -> {
+                        droppedFiles.remove(invalidFile);
+                    });
+
+                    switch (droppedFiles.size()) {
+                        case 0:
+                            Message.error(MainFrame.this, Dict.Dialog.TITLE_IO_ERROR.toString(), "Not a valid collage file.");
+                            break;
+                        case 1:
+                            open(droppedFiles.getFirst());
+                            break;
+                        default:
+                            Message.error(MainFrame.this, Dict.Dialog.TITLE_IO_ERROR.toString(), "Too many files dropped.");
+                            break;
+                    }
+                } catch (UnsupportedFlavorException | IOException ex) {
+                    System.err.println(ex.getMessage());
+                }
+            }
+        };
+
+        canvasPanel.setDropTarget(mDropTarget);
     }
 
     private void initMac() {
@@ -407,7 +456,7 @@ public class MainFrame extends JFrame {
             SimpleDialog.setSelectedFile(file);
         }
 
-        if (SimpleDialog.saveFile(new String[]{"collage"})) {
+        if (SimpleDialog.saveFile(new String[]{Collage.FILE_EXT})) {
             file = SimpleDialog.getPath();
             try {
                 mCollage.save(file);

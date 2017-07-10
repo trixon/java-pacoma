@@ -34,6 +34,7 @@ import org.apache.commons.io.FilenameUtils;
  */
 public class Collage {
 
+    public static final String FILE_EXT = "collage";
     private static final int FILE_FORMAT_VERSION = 1;
     private static final Gson sGson = new Gson();
     private Color mBorderColor;
