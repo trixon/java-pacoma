@@ -47,7 +47,7 @@ public class PropertiesPanel extends javax.swing.JPanel {
     public void store() {
         mCollage.setWidth((int) widthSpinner.getValue());
         mCollage.setHeight((int) heightSpinner.getValue());
-        mCollage.setBorderThickness((double) thicknessSpinner.getValue());
+        mCollage.setBorderThickness((double) thicknessSpinner.getValue() / 100);
         mCollage.setBorderColor(colorPanel.getColor());
     }
 
@@ -70,7 +70,7 @@ public class PropertiesPanel extends javax.swing.JPanel {
         heightSpinner.setValue(mCollage.getHeight());
 
         colorPanel.setColor(mCollage.getBorderColor());
-        thicknessSpinner.setValue(mCollage.getBorderThickness());
+        thicknessSpinner.setValue(mCollage.getBorderThickness() * 100);
     }
 
     /**
@@ -95,6 +95,7 @@ public class PropertiesPanel extends javax.swing.JPanel {
         thicknessSpinner = new javax.swing.JSpinner();
         colorPanel = new se.trixon.almond.util.swing.ColorPanel();
         jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -228,6 +229,13 @@ public class PropertiesPanel extends javax.swing.JPanel {
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         add(jPanel1, gridBagConstraints);
+
+        jLabel1.setText("%"); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        add(jLabel1, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
 
     private void templateComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_templateComboBoxActionPerformed
@@ -245,6 +253,7 @@ public class PropertiesPanel extends javax.swing.JPanel {
     private javax.swing.JLabel heightLabel;
     private javax.swing.JSpinner heightSpinner;
     private javax.swing.JLabel imageSizeLabel;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JComboBox<String> templateComboBox;
     private javax.swing.JLabel templateLabel;
