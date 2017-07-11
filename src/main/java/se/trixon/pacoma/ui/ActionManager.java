@@ -37,6 +37,8 @@ import se.trixon.almond.util.swing.dialogs.MenuModePanel;
  */
 public class ActionManager extends AlmondActionManager {
 
+    public static final String REGENERATE = "regenerate";
+
     private final HashSet<AppListener> mAppListeners = new HashSet<>();
     private final HashSet<ProfileListener> mProfileListeners = new HashSet<>();
 
@@ -277,6 +279,60 @@ public class ActionManager extends AlmondActionManager {
 
         initAction(action, NEW, keyStroke, MaterialIcon._Content.CREATE, true);
 
+        //undo
+        keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z, commandMask);
+        action = new AlmondAction(Dict.UNDO.toString()) {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mAppListeners.forEach((listener) -> {
+                    try {
+                        listener.onUndo(e);
+                    } catch (Exception exception) {
+                        Logger.getLogger(ActionManager.class.getName()).log(Level.SEVERE, null, exception);
+                    }
+                });
+            }
+        };
+
+        initAction(action, UNDO, keyStroke, MaterialIcon._Content.UNDO, true);
+
+        //redo
+        keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z, commandMask + KeyEvent.SHIFT_DOWN_MASK);
+        action = new AlmondAction(Dict.REDO.toString()) {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mAppListeners.forEach((listener) -> {
+                    try {
+                        listener.onRedo(e);
+                    } catch (Exception exception) {
+                        Logger.getLogger(ActionManager.class.getName()).log(Level.SEVERE, null, exception);
+                    }
+                });
+            }
+        };
+
+        initAction(action, REDO, keyStroke, MaterialIcon._Content.REDO, true);
+
+        //regenerate
+        keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0);
+        action = new AlmondAction(Dict.REGENERATE.toString()) {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mProfileListeners.forEach((listener) -> {
+                    try {
+                        listener.onRegenerate(e);
+                    } catch (Exception exception) {
+                        Logger.getLogger(ActionManager.class.getName()).log(Level.SEVERE, null, exception);
+                    }
+                });
+            }
+        };
+
+        initAction(action, REGENERATE, keyStroke, MaterialIcon._Action.AUTORENEW, true);
+
         //open document
         keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_O, commandMask);
         action = new AlmondAction(Dict.OPEN.toString()) {
@@ -385,7 +441,7 @@ public class ActionManager extends AlmondActionManager {
     }
 
     public void setEnabledDocumentActions(boolean open) {
-        String[] actionIds = new String[]{ADD, CLEAR, CLOSE, PROPERTIES, SAVE, SAVE_AS};
+        String[] actionIds = new String[]{ADD, CLEAR, CLOSE, PROPERTIES, SAVE, SAVE_AS, REDO, UNDO, REGENERATE};
 
         for (String actionId : actionIds) {
             getAction(actionId).setEnabled(open);
@@ -402,7 +458,11 @@ public class ActionManager extends AlmondActionManager {
 
         void onQuit(ActionEvent actionEvent);
 
+        void onRedo(ActionEvent actionEvent);
+
         void onStart(ActionEvent actionEvent);
+
+        void onUndo(ActionEvent actionEvent);
     }
 
     public interface ProfileListener {
@@ -414,6 +474,8 @@ public class ActionManager extends AlmondActionManager {
         void onClose(ActionEvent actionEvent);
 
         void onEdit(ActionEvent actionEvent);
+
+        void onRegenerate(ActionEvent actionEvent);
 
         void onNew(ActionEvent actionEvent);
 
