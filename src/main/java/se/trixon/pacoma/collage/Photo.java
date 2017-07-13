@@ -49,7 +49,7 @@ public class Photo {
     }
 
     public double getRatio() {
-        return mHeight / mWidth;
+        return 1.0 * mHeight / mWidth;
     }
 
     public int getWidth() {

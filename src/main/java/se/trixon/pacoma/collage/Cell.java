@@ -15,26 +15,177 @@
  */
 package se.trixon.pacoma.collage;
 
+import java.awt.Rectangle;
+import java.util.LinkedList;
+
 /**
+ * Represents a cell in a column
+ *
  * Based on work by Adrien Vergé in https://github.com/adrienverge/PhotoCollage
  *
  * @author Patrik Karlsson
  */
 public class Cell {
 
-    private Photo mPhoto;
-    private CellExtent mCellExtent;
+    /*
+    Properties:
+    <- x -><- w ->
+    ---------------------- ^
+    |      |             | |y
+    |------|             | |
+    |      |-------------| v
+    |------| Cell |      | ^
+    |      |      |      | |h
+    ---------------------- v
+     */
+    private Extent mExtent;
     private int mHeight;
-    private int mWidth;
-    private Column[] mParents;
-//    private double
+    private LinkedList<Column> mParents;
+    private Photo mPhoto;
 
-    public Cell(Photo photo, Column... parents) {
-        mPhoto = photo;
+    public Cell(Photo photo, LinkedList<Column> parents) {
         mParents = parents;
-//        mHeight=
+        mPhoto = photo;
+        mExtent = null;
+        mHeight = (int) Math.round(getWidth() * getWantedRatio());
     }
 
+    public Cell() {
+    }
+
+    Cell getOrigin() {
+        return null;
+    }
+
+    void setParents(LinkedList<Column> parents) {
+        mParents = parents;
+    }
+
+    /**
+     *
+     * @return the cell below this one
+     */
+    Cell getBottomNeighbor() {
+        try {
+            int indexThis = mParents.getFirst().getCells().indexOf(this);
+            return mParents.getFirst().getCells().get(indexThis + 1);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the coordinates of the contained image
+     *
+     * These are computed in order not to loose space, so the content area will always be greater
+     * than the cell itself. It is the space taken by the contained image if it wasn't cropped.
+     *
+     * @return
+     */
+    private Rectangle getContentCoords() {
+        int x = 0, y = 0, w = 0, h = 0;
+
+        if (getWantedRatio() < getRatio()) {
+            //If the contained image is too thick to fit
+            h = getHeight();
+            w = (int) Math.round(getHeight() / getWantedRatio());
+            y = getY();
+            x = (int) Math.round(getX() - (w - getWidth()) / 2.0);
+        } else if (getWantedRatio() > getRatio()) {
+            //If the contained image is too tall to fit
+            w = getWidth();
+            h = (int) Math.round(getWidth() * getWantedRatio());
+            x = getX();
+            y = (int) Math.round(getY() - (h - getHeight()) / 2.0);
+        }
+
+        return new Rectangle(x, y, w, h);
+    }
+
+    Extent getExtent() {
+        return mExtent;
+    }
+
+    private double getRatio() {
+        return 1.0 * getHeight() / getWidth();
+    }
+
+    Cell getTopNeighbor() {
+        try {
+            int indexThis = mParents.getFirst().getCells().indexOf(this);
+            return mParents.getFirst().getCells().get(indexThis - 1);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+
+    private double getWantedRatio() {
+        return mPhoto.getRatio();
+    }
+
+    private int getWidth() {
+        return mParents
+                .stream()
+                .mapToInt(Column::getWidth)
+                .sum();
+    }
+
+    private int getX() {
+        return mParents.getFirst().getX();
+    }
+
+    int getHeight() {
+        return mHeight;
+    }
+
+    LinkedList<Column> getParents() {
+        return mParents;
+    }
+
+    Photo getPhoto() {
+        return mPhoto;
+    }
+
+    /**
+     * Returns the cell's y coordinate
+     *
+     * It assumes that the cell is in a single column, so it is the previous cell's y + h.
+     */
+    int getY() {
+        Cell prev = null;
+        for (Cell cell : mParents.getFirst().getCells()) {
+            if (cell == this) {
+                if (prev != null) {
+                    return prev.getY() + prev.getHeight();
+                } else {
+                    return 0;
+                }
+            }
+            prev = cell;
+        }
+
+        throw new IllegalAccessError("Should never reach thhis point");
+    }
+
+    boolean isExtended() {
+        return !(this instanceof Extent) && mExtent != null;
+    }
+
+    boolean isExtension() {
+        return this instanceof Extent;
+    }
+
+    void scale(double alpha) {
+        mHeight = (int) Math.round(mHeight * alpha);
+    }
+
+    void setExtent(Extent extent) {
+        mExtent = extent;
+    }
+
+    void setPhoto(Photo photo) {
+        mPhoto = photo;
+    }
 }
 /*
 class Cell(object):
@@ -147,4 +298,4 @@ class Cell(object):
             if self is c:
                 return prev
             prev = c
- */
+*/

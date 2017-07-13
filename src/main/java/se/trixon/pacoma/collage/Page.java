@@ -15,12 +15,280 @@
  */
 package se.trixon.pacoma.collage;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Random;
+
 /**
  * Based on work by Adrien Vergé in https://github.com/adrienverge/PhotoCollage
  *
  * @author Patrik Karlsson
  */
 public class Page {
+
+    private final ArrayList<Column> mColumns = new ArrayList<>();
+    /*
+    Properties:
+    <-------- w -------->
+    ---------------------- ^
+    |                    | |
+    |                    |
+    |        Page        | h
+    |                    |
+    |                    | |
+    ---------------------- v
+     */
+    private final double mTargetRatio;
+
+    Page(int w, double targetRatio, int numOfCols) {
+        mTargetRatio = targetRatio;
+
+        int colW = (int) Math.round(1.0 * w / numOfCols);
+        for (int i = 0; i < numOfCols; i++) {
+            mColumns.add(new Column(this, colW));
+        }
+    }
+
+    private void addCellMultiColumn(Column column1, Column column2, Photo photo) {
+        LinkedList<Column> columnList = new LinkedList<>();
+        columnList.add(column1);
+        columnList.add(column2);
+        Cell cell = new Cell(photo, columnList);
+        Extent cellExtent = new Extent(cell);
+        column1.getCells().add(cell);
+        column2.getCells().add(cellExtent);
+    }
+
+    private void addCellSingleColumn(Column column, Photo photo) {
+        LinkedList<Column> columnList = new LinkedList<>();
+        columnList.add(column);
+        column.getCells().add(new Cell(photo, columnList));
+    }
+
+    /**
+     * Set all columns' heights to same value by shrinking them
+     */
+    private void adjustColumnHeights() {
+        double targetHeight = getWidth() * mTargetRatio;
+        mColumns.forEach((column) -> {
+            column.adjustHeight((int) targetHeight);
+        });
+    }
+
+    private Cell getCellAtPosition(int x, int y) {
+        for (Column col : mColumns) {
+            if (x >= col.getX() && x < col.getX() + col.getWidth()) {
+                for (Cell cell : col.getCells()) {
+                    if (y >= cell.getY() && y < cell.getY() + cell.getHeight()) {
+                        if (cell.isExtension()) {
+                            return ((Extent) cell).getOrigin();
+                        } else {
+                            return cell;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private int getHeight() {
+        return mColumns
+                .stream()
+                .mapToInt(Column::getHeight)
+                .max()
+                .getAsInt();
+    }
+
+    /**
+     *
+     * @return the column with lowest height
+     */
+    private Column getNextFreeColumn() {
+        int minHeight = mColumns
+                .stream()
+                .mapToInt(Column::getHeight)
+                .min()
+                .getAsInt();
+        ArrayList<Column> candidates = new ArrayList<>();
+
+        mColumns.stream().filter((column) -> (column.getHeight() == minHeight)).forEachOrdered((column) -> {
+            candidates.add(column);
+        });
+
+        return candidates.get(new Random().nextInt(candidates.size()));
+    }
+
+    private int getNumOfCols() {
+        return mColumns.size();
+    }
+
+    private double getRatio() {
+        return 1.0 * getHeight() / getWidth();
+    }
+
+    private double getWidth() {
+        return mColumns
+                .stream()
+                .mapToDouble(Column::getWidth)
+                .sum();
+    }
+
+    /**
+     * Remove holes created by extended cells
+     */
+    private void removeBottomHoles() {
+        /*
+        Example (case A):
+        The bottom-right cell should be extended to fill the hole.
+        ----------------------             ----------------------
+        |      |      |      |             |      |      |      |
+        |      |-------------|             |      |-------------|
+        |------|             |             |------|             |
+        |      |--------------             |      |--------------
+        |      |      |  ^                 |      |  ^   |      |
+        --------------- hole               -------- hole --------
+
+        Example (case B):
+        The bottom cell should be moved under the other extended cell.
+        ----------------------             ----------------------
+        |      |      |      |             |      |      |      |
+        |------|-------------|             |-------------|------|
+        |      |             |             |             |      |
+        |---------------------             ---------------------|
+        |             |   <-- hole      hole ->   |             |
+        ---------------                           ---------------
+         */
+        for (Column col : mColumns) {
+            Cell cell = col.getCells().getLast();
+            if (cell == col.getCells().getFirst()) {
+                continue;
+            }
+
+            // Case A
+            // If cell is not extended, is below an extended cell and has no
+            // neighbour under the latter, it should be extended.
+            if (!cell.isExtended() && !cell.isExtension()) {
+                //Case A1
+                if (cell.getTopNeighbor().isExtended() && cell.getTopNeighbor().getExtent().getBottomNeighbor() == null) {
+                    //Extend cell to right
+                    Extent extent = new Extent(cell);
+                    col.getRightNeighbor().getCells().add(extent);
+                    LinkedList<Column> parents = new LinkedList<>();
+                    parents.add(col);
+                    parents.add(col.getRightNeighbor());
+                    cell.setParents(parents);
+                    //Case A2
+                } else if (cell.getTopNeighbor().isExtension() && cell.getTopNeighbor().getOrigin().getBottomNeighbor() == null) {
+                    //Extend cell to left
+                    col.getCells().remove(cell);
+                    col.getLeftNeighbor().getCells().add(cell);
+                    Extent extent = new Extent(cell);
+                    col.getCells().add(extent);
+                    LinkedList<Column> parents = new LinkedList<>();
+                    parents.add(col.getLeftNeighbor());
+                    parents.add(col);
+                    cell.setParents(parents);
+                }
+
+                //Case B
+                //If cell is extended and one of the cells above is extended too,
+                //the bottom cell should be placed right below the top one.
+            } else if (cell.isExtended() && cell.getExtent().getBottomNeighbor() == null) {
+                //Case B1
+                if (cell.getExtent().getTopNeighbor().isExtended()
+                        && cell.getExtent().getTopNeighbor().getExtent().getBottomNeighbor() == null) {
+                    //Move cell to right
+                    col.getCells().remove(cell);
+                    col.getRightNeighbor().getCells().remove(cell.getExtent());
+                    col.getRightNeighbor().getCells().add(cell);
+                    col.getRightNeighbor().getRightNeighbor().getCells().add(cell.getExtent());
+                    LinkedList<Column> parents = new LinkedList<>();
+                    parents.add(col.getRightNeighbor());
+                    parents.add(col.getRightNeighbor().getRightNeighbor());
+                    cell.setParents(parents);
+                    //Case B2
+                } else if (cell.getTopNeighbor().isExtension()
+                        && cell.getTopNeighbor().getOrigin().getBottomNeighbor() == null) {
+                    //Move cell to left
+                    col.getCells().remove(cell);
+                    col.getRightNeighbor().getCells().remove(cell.getExtent());
+                    col.getLeftNeighbor().getCells().add(cell);
+                    col.getCells().add(cell.getExtent());
+                    LinkedList<Column> parents = new LinkedList<>();
+                    parents.add(col.getLeftNeighbor());
+                    parents.add(col);
+                    cell.setParents(parents);
+                }
+            }
+        }
+    }
+
+    private void removeEmptyCols() {
+        for (Iterator<Column> iterator = mColumns.iterator(); iterator.hasNext();) {
+            Column column = iterator.next();
+            if (column.getCells().isEmpty()) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private void scale(double alpha) {
+        mColumns.forEach((column) -> {
+            column.scale(alpha);
+        });
+    }
+
+    private void scaleToFit(double maxWidth, Double maxHeight) {
+        if (maxHeight == null || getWidth() * maxHeight > getHeight() * maxWidth) {
+            scale(maxWidth / getWidth());
+        } else {
+            scale(maxHeight / getHeight());
+        }
+    }
+
+    private void swapPhotos(Cell cell1, Cell cell2) {
+        Photo photo2 = cell2.getPhoto();
+        cell2.setPhoto(cell1.getPhoto());
+        cell1.setPhoto(photo2);
+    }
+
+    /**
+     * Add a new cell in the best computed place. If possible, and if it's worth, make a
+     * "multiple-column" cell.
+     *
+     * @param photo
+     */
+    void addCell(Photo photo) {
+        Column col = getNextFreeColumn();
+        Column left = col.getLeftNeighbor();
+        Column right = col.getRightNeighbor();
+
+        if (2 * new Random().nextDouble() > photo.getRatio()) {
+            if (left != null && Math.abs(col.getHeight() - left.getHeight()) < 0.5 * col.getWidth()) {
+                addCellMultiColumn(left, col, photo);
+                return;
+            } else if (right != null && Math.abs(col.getHeight() - right.getHeight()) < 0.5 * col.getWidth()) {
+                addCellMultiColumn(col, right, photo);
+                return;
+            }
+        }
+
+        addCellSingleColumn(col, photo);
+    }
+
+    void adjust() {
+        removeEmptyCols();
+        removeBottomHoles();
+        adjustColumnHeights();
+    }
+
+    ArrayList<Column> getColumns() {
+        return mColumns;
+    }
+
 }
 /*
 class Page(object):
@@ -247,4 +515,4 @@ class Page(object):
 
     def swap_photos(self, cell1, cell2):
         cell1.photo, cell2.photo = cell2.photo, cell1.photo
-*/
+ */

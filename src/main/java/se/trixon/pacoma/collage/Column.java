@@ -15,13 +15,153 @@
  */
 package se.trixon.pacoma.collage;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+
 /**
+ * Represents a column in a page
+ *
  * Based on work by Adrien Vergé in https://github.com/adrienverge/PhotoCollage
  *
  * @author Patrik Karlsson
  */
 public class Column {
 
+    /*
+    Properties:
+    <----- x ----><-- w ->
+    ---------------------- ^
+    |      |      |      | |
+    |      |      |      |
+    |      |      |Column| h
+    |      |      |      |
+    -------|      |      | |
+    |      |------- v
+    --------
+     */
+    private final LinkedList<Cell> mCells = new LinkedList<>();
+    private final Page mParent;
+    private final ArrayList<Column> mParentColumns;
+    private int mWidth;
+
+    Column(Page parent, int columnWidth) {
+        mParent = parent;
+        mParentColumns = mParent.getColumns();
+        mWidth = columnWidth;
+    }
+
+    /**
+     * Set the column's height to a given value by resizing cells
+     *
+     * @param targetHeight
+     */
+    void adjustHeight(int targetHeight) {
+        class Group {
+
+            private final int y;
+            private int h;
+            private final LinkedList<Cell> cells = new LinkedList<>();
+
+            public Group(int y) {
+                this.y = y;
+                h = 0;
+            }
+
+        }
+        LinkedList<Group> groups = new LinkedList<>();
+        groups.add(new Group(0));
+        mCells.forEach((cell) -> {
+            //While a cell extent is not reached, keep add cells to the group
+            if (!cell.isExtension()) {
+                groups.getLast().cells.add(cell);
+            } else {
+                //Close current group and create a new one
+                groups.getLast().h = cell.getY() - groups.getLast().y;
+                groups.add(new Group(cell.getY() + cell.getHeight()));
+            }
+        });
+        groups.getLast().h = targetHeight - groups.getLast().y;
+
+        //Adjust height for each group independently
+        groups.stream().filter((group) -> !(group.cells.isEmpty())).forEachOrdered((group) -> {
+            double alpha = group.h / group.cells
+                    .stream()
+                    .mapToInt(Cell::getHeight)
+                    .sum();
+
+            group.cells.forEach((cell) -> {
+                cell.scale(alpha);
+            });
+        });
+    }
+
+    LinkedList<Cell> getCells() {
+        return mCells;
+    }
+
+    /**
+     * @return The column's total height
+     *
+     * This is not simply the sum of its cells heights, because there can be empty spaces between
+     * cells.
+     *
+     */
+    int getHeight() {
+        if (mCells.isEmpty()) {
+            return 0;
+        } else {
+            return mCells.getLast().getY() + mCells.getLast().getHeight();
+        }
+    }
+
+    /**
+     *
+     * @return the column on the left of this one
+     */
+    Column getLeftNeighbor() {
+        try {
+            return mParentColumns.get(mParentColumns.indexOf(this) - 1);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @return the column on the left of this one
+     */
+    Column getRightNeighbor() {
+        try {
+            return mParentColumns.get(mParentColumns.indexOf(this) + 1);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+
+    int getWidth() {
+        return mWidth;
+    }
+
+    int getX() {
+        int x = 0;
+
+        for (Column column : mParentColumns) {
+            if (column == this) {
+                break;
+            } else {
+                x += column.mWidth;
+            }
+        }
+
+        return x;
+    }
+
+    void scale(double alpha) {
+        mWidth *= alpha;
+        mCells.forEach((Cell cell) -> {
+            cell.scale(alpha);
+        });
+    }
 }
 /*
 class Column(object):
@@ -120,5 +260,4 @@ class Column(object):
             alpha = group.h / sum(c.h for c in group.cells)
             for c in group.cells:
                 c.h = c.h * alpha
-
 */

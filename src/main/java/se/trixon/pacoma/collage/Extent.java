@@ -15,17 +15,54 @@
  */
 package se.trixon.pacoma.collage;
 
+import java.util.LinkedList;
+
 /**
  * Based on work by Adrien Vergé in https://github.com/adrienverge/PhotoCollage
  *
  * @author Patrik Karlsson
  */
-public class CellExtent {
+public class Extent extends Cell {
 
-    private Cell mOrigin;
+    private final Cell mOrigin;
+
+    Extent(Cell cell) {
+        mOrigin = cell;
+        mOrigin.setExtent(this);
+    }
+
+    @Override
+    int getHeight() {
+        return mOrigin.getHeight();
+    }
+
+    @Override
+    Cell getOrigin() {
+        return mOrigin;
+    }
+
+    @Override
+    LinkedList<Column> getParents() {
+        return (LinkedList<Column>) mOrigin.getParents().subList(1, 1);
+    }
+
+    @Override
+    Photo getPhoto() {
+        return mOrigin.getPhoto();
+    }
+
+    @Override
+    int getY() {
+        return mOrigin.getY();
+    }
+
+    @Override
+    void scale(double alpha) {
+        //nop
+    }
 }
 /*
- class CellExtent(Cell):
+class CellExtent(Cell):
     def __init__(self, cell):
         self.origin = cell
         self.origin.extent = self
@@ -52,5 +89,4 @@ public class CellExtent {
 
     def scale(self, alpha):
         pass
-
- */
+*/
