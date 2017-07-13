@@ -15,8 +15,8 @@
  */
 package se.trixon.pacoma.collage;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 /**
  * Represents a column in a page
@@ -41,13 +41,24 @@ public class Column {
      */
     private final LinkedList<Cell> mCells = new LinkedList<>();
     private final Page mParent;
-    private final ArrayList<Column> mParentColumns;
+    private final LinkedList<Column> mParentColumns;
     private int mWidth;
 
     Column(Page parent, int columnWidth) {
         mParent = parent;
         mParentColumns = mParent.getColumns();
         mWidth = columnWidth;
+    }
+
+    /**
+     *
+     * @return Representation of the column in ASCII art
+     */
+    @Override
+    public String toString() {
+        return mCells.stream()
+                .map(Cell::toString)
+                .collect(Collectors.joining("\n"));
     }
 
     /**
@@ -260,4 +271,4 @@ class Column(object):
             alpha = group.h / sum(c.h for c in group.cells)
             for c in group.cells:
                 c.h = c.h * alpha
-*/
+ */

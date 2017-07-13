@@ -31,6 +31,15 @@ public class Extent extends Cell {
         mOrigin.setExtent(this);
     }
 
+    /**
+     *
+     * @return Representation of the cell in ASCII art
+     */
+    @Override
+    public String toString() {
+        return "------]";
+    }
+
     @Override
     int getHeight() {
         return mOrigin.getHeight();
@@ -60,6 +69,7 @@ public class Extent extends Cell {
     void scale(double alpha) {
         //nop
     }
+
 }
 /*
 class CellExtent(Cell):
@@ -89,4 +99,4 @@ class CellExtent(Cell):
 
     def scale(self, alpha):
         pass
-*/
+ */

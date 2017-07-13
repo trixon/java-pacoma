@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Based on work by Adrien Vergé in https://github.com/adrienverge/PhotoCollage
@@ -27,7 +28,7 @@ import java.util.Random;
  */
 public class Page {
 
-    private final ArrayList<Column> mColumns = new ArrayList<>();
+    private final LinkedList<Column> mColumns = new LinkedList<>();
     /*
     Properties:
     <-------- w -------->
@@ -48,6 +49,53 @@ public class Page {
         for (int i = 0; i < numOfCols; i++) {
             mColumns.add(new Column(this, colW));
         }
+    }
+
+    /**
+     *
+     * @return Representation of the page in ASCII art
+     */
+    @Override
+    public String toString() {
+        /*
+        Returns something like:
+        [62 52]    [125 134-- ------]    [62 87]
+        [62 47]    [62 66]    [125 132-- [62 45]
+        [62 46]    ------]    [62 49]    ------]
+        [62 78]    ------]    [62 49]    [62 45]
+        [125 102-- ------]    [62 49]    [62 65]
+        [125 135--            [62 85]    [62 53]
+        [125 91--             [125 89--  [62 64]
+                                 ------]
+         */
+        LinkedList<String> lines = new LinkedList<>();
+        int n = 0;
+        boolean end = false;
+        while (!end) {
+            lines.add("");
+            end = true;
+            for (Column col : mColumns) {
+                String[] cells = col.toString().split("\\n");
+                int w = 0;
+                for (String s : cells) {
+                    w = Math.max(w, s.length());
+                }
+                if (col != mColumns.getLast()) {
+                    w += 1;
+                }
+                String cell = StringUtils.repeat(" ", w);
+                if (n < cells.length) {
+                    cell = cells[n] + StringUtils.repeat(" ", w - cells[n].length());
+                    if (n < cells.length - 1) {
+                        end = false;
+                    }
+                }
+                lines.set(lines.size() - 1, lines.getLast() + cell);
+            }
+            n++;
+        }
+
+        return String.join("\n", lines);
     }
 
     private void addCellMultiColumn(Column column1, Column column2, Photo photo) {
@@ -285,7 +333,7 @@ public class Page {
         adjustColumnHeights();
     }
 
-    ArrayList<Column> getColumns() {
+    LinkedList<Column> getColumns() {
         return mColumns;
     }
 

@@ -53,6 +53,17 @@ public class Cell {
     public Cell() {
     }
 
+    /**
+     *
+     * @return Representation of the cell in ASCII art
+     */
+    @Override
+    public String toString() {
+        String end = mExtent == null ? "]" : "--";
+
+        return String.format("[%d %d%s", getWidth(), getHeight(), end);
+    }
+
     Cell getOrigin() {
         return null;
     }
@@ -298,4 +309,4 @@ class Cell(object):
             if self is c:
                 return prev
             prev = c
-*/
+ */
