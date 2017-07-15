@@ -109,7 +109,7 @@ public class ActionManager extends AlmondActionManager {
 
         //start
         keyStroke = null;
-        action = new AlmondAction(Dict.START.toString()) {
+        action = new AlmondAction(Dict.RENDER.toString()) {
 
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -122,7 +122,7 @@ public class ActionManager extends AlmondActionManager {
             }
         };
 
-        initAction(action, START, keyStroke, MaterialIcon._Av.PLAY_ARROW, false);
+        initAction(action, START, keyStroke, MaterialIcon._Av.FIBER_MANUAL_RECORD, false);
 
         //cancel
         keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
@@ -441,7 +441,18 @@ public class ActionManager extends AlmondActionManager {
     }
 
     public void setEnabledDocumentActions(boolean open) {
-        String[] actionIds = new String[]{ADD, CLEAR, CLOSE, PROPERTIES, SAVE, SAVE_AS, REDO, UNDO, REGENERATE};
+        String[] actionIds = new String[]{
+            ADD,
+            CLEAR,
+            CLOSE,
+            PROPERTIES,
+            REDO,
+            REGENERATE,
+            SAVE,
+            SAVE_AS,
+            START,
+            UNDO
+        };
 
         for (String actionId : actionIds) {
             getAction(actionId).setEnabled(open);

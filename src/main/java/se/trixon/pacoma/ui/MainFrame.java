@@ -221,9 +221,11 @@ public class MainFrame extends JFrame {
         //Edit
         undoMenuItem.setAction(mActionManager.getAction(ActionManager.UNDO));
         undoButton.setAction(mActionManager.getAction(ActionManager.UNDO));
+        undoButton.setText("");
 
         redoMenuItem.setAction(mActionManager.getAction(ActionManager.REDO));
         redoButton.setAction(mActionManager.getAction(ActionManager.REDO));
+        redoButton.setText("");
 
         //Tools
         optionsMenuItem.setAction(mActionManager.getAction(ActionManager.OPTIONS));
@@ -240,6 +242,7 @@ public class MainFrame extends JFrame {
 //        startButton.setAction(mActionManager.getAction(ActionManager.START));
 //        cancelButton.setAction(mActionManager.getAction(ActionManager.CANCEL));
         menuButton.setAction(mActionManager.getAction(ActionManager.MENU));
+        renderButton.setAction(mActionManager.getAction(ActionManager.START));
 
         SwingHelper.clearTextButtons(menuButton);
     }
@@ -277,7 +280,8 @@ public class MainFrame extends JFrame {
 
             @Override
             public void onRedo(ActionEvent actionEvent) {
-                //TODO
+                mCollage.nextHistory();
+                updateToolButtons();
             }
 
             @Override
@@ -286,7 +290,8 @@ public class MainFrame extends JFrame {
 
             @Override
             public void onUndo(ActionEvent actionEvent) {
-                //TODO
+                mCollage.prevHistory();
+                updateToolButtons();
             }
         });
 
@@ -457,6 +462,10 @@ public class MainFrame extends JFrame {
         SwingHelper.clearToolTipText(mPopupMenu);
     }
 
+    private void quit() {
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+    }
+
     private void save() {
         final File file = mCollage.getFile();
 
@@ -519,8 +528,12 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void quit() {
-        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+    private void updateToolButtons() {
+        historyIndexLabel.setText(String.format("%d", mCollage.getHistoryIndex()));
+
+        mActionManager.getAction(ActionManager.UNDO).setEnabled(mCollage.getHistoryIndex() > 0);
+        mActionManager.getAction(ActionManager.REDO).setEnabled(mCollage.getHistoryIndex() < mCollage.getHistorySize());
+        mActionManager.getAction(ActionManager.START).setEnabled(mCollage.hasImages());
     }
 
     /**
@@ -556,18 +569,20 @@ public class MainFrame extends JFrame {
         toolBar = new javax.swing.JToolBar();
         newButton = new javax.swing.JButton();
         openButton = new javax.swing.JButton();
-        jSeparator4 = new javax.swing.JToolBar.Separator();
         saveButton = new javax.swing.JButton();
-        jSeparator5 = new javax.swing.JToolBar.Separator();
         closeButton = new javax.swing.JButton();
-        jSeparator3 = new javax.swing.JToolBar.Separator();
-        undoButton = new javax.swing.JButton();
-        redoButton = new javax.swing.JButton();
-        jSeparator7 = new javax.swing.JToolBar.Separator();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        renderButton = new javax.swing.JButton();
         propertiesButton = new javax.swing.JButton();
-        regenerateButton = new javax.swing.JButton();
+        jSeparator7 = new javax.swing.JToolBar.Separator();
         addButton = new javax.swing.JButton();
         clearButton = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        regenerateButton = new javax.swing.JButton();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
+        undoButton = new javax.swing.JButton();
+        historyIndexLabel = new javax.swing.JLabel();
+        redoButton = new javax.swing.JButton();
         filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         menuButton = new javax.swing.JButton();
         canvasPanel = new se.trixon.pacoma.ui.CanvasPanel();
@@ -617,34 +632,40 @@ public class MainFrame extends JFrame {
 
         openButton.setFocusable(false);
         toolBar.add(openButton);
-        toolBar.add(jSeparator4);
 
         saveButton.setFocusable(false);
         toolBar.add(saveButton);
-        toolBar.add(jSeparator5);
 
         closeButton.setFocusable(false);
         toolBar.add(closeButton);
-        toolBar.add(jSeparator3);
+        toolBar.add(jSeparator4);
 
-        undoButton.setFocusable(false);
-        toolBar.add(undoButton);
-
-        redoButton.setFocusable(false);
-        toolBar.add(redoButton);
-        toolBar.add(jSeparator7);
+        renderButton.setFocusable(false);
+        toolBar.add(renderButton);
 
         propertiesButton.setFocusable(false);
         toolBar.add(propertiesButton);
-
-        regenerateButton.setFocusable(false);
-        toolBar.add(regenerateButton);
+        toolBar.add(jSeparator7);
 
         addButton.setFocusable(false);
         toolBar.add(addButton);
 
         clearButton.setFocusable(false);
         toolBar.add(clearButton);
+        toolBar.add(jSeparator3);
+
+        regenerateButton.setFocusable(false);
+        toolBar.add(regenerateButton);
+        toolBar.add(jSeparator5);
+
+        undoButton.setFocusable(false);
+        toolBar.add(undoButton);
+
+        historyIndexLabel.setText(bundle.getString("MainFrame.historyIndexLabel.text")); // NOI18N
+        toolBar.add(historyIndexLabel);
+
+        redoButton.setFocusable(false);
+        toolBar.add(redoButton);
         toolBar.add(filler1);
 
         menuButton.setFocusable(false);
@@ -690,13 +711,14 @@ public class MainFrame extends JFrame {
     private javax.swing.Box.Filler filler1;
     private javax.swing.JMenu helpMenu;
     private javax.swing.JMenuItem helpMenuItem;
+    private javax.swing.JLabel historyIndexLabel;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JPopupMenu.Separator jSeparator6;
-    private javax.swing.JSeparator jSeparator7;
+    private javax.swing.JToolBar.Separator jSeparator7;
     private javax.swing.JPopupMenu mPopupMenu;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JButton menuButton;
@@ -711,6 +733,7 @@ public class MainFrame extends JFrame {
     private javax.swing.JButton redoButton;
     private javax.swing.JMenuItem redoMenuItem;
     private javax.swing.JButton regenerateButton;
+    private javax.swing.JButton renderButton;
     private javax.swing.JButton saveAsButton;
     private javax.swing.JMenuItem saveAsMenuItem;
     private javax.swing.JButton saveButton;

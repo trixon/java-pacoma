@@ -45,6 +45,7 @@ public class Collage {
     private int mFileFormatVersion;
     private final ArrayList<File> mFileList = new ArrayList<>();
     private int mHeight = 2480;
+    private transient int mHistoryIndex = 0;
     private String mName;
     private transient final HashSet<CollagePropertyChangeListener> mPropertyChangeListeners = new HashSet<>();
     private int mWidth = 3508;
@@ -65,7 +66,7 @@ public class Collage {
     }
 
     public Collage() {
-        mBorderColor = Color.CYAN;
+        mBorderColor = Color.BLACK;
     }
 
     public void addFile(File file) {
@@ -109,6 +110,14 @@ public class Collage {
         return mHeight;
     }
 
+    public int getHistoryIndex() {
+        return mHistoryIndex;
+    }
+
+    public int getHistorySize() {
+        return 7;
+    }
+
     public String getName() {
         return mName;
     }
@@ -123,6 +132,15 @@ public class Collage {
 
     public boolean isDirty() {
         return mDirty;
+    }
+
+    public void nextHistory() {
+        mHistoryIndex++;
+
+    }
+
+    public void prevHistory() {
+        mHistoryIndex--;
     }
 
     public void removeFile(File file) {
